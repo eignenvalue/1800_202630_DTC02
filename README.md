@@ -67,6 +67,7 @@ elmo-hikes/
 
 ## Contributors
 - **Horad Ghaderi** - BCIT CST Student with a passion for computers and learning new skills in this field. He got so interested in bash that he want to learn how to work with Linux.
+- **Warren Chemerika** - BCIT CST Student with a passion for cars and programming and user-friendly applications.
 
 ---
 
