@@ -1,23 +1,25 @@
-# Elmo Hikes
 
+# Project Name
 
 ## Overview
-Elmo Hikes is a client-side JavaScript web application that helps users discover and explore hiking trails. The app displays a curated list of hike trails, each with details such as name, location, difficulty, and an image. Users can browse the list and mark their favorite trails for easy access later.
+Summarize your project's purpose, problem solved, key features, user benefits, development context, and main technologies used.
 
-Developed for the COMP 1800 course, this project applies User-Centred Design practices and agile project management, and demonstrates integration with Firebase backend services for storing user favorites.
+Example:
+
+This client-side JavaScript web application provides real-time weather updates for cities worldwide. It simplifies accessing weather information through an intuitive mobile-first interface, allowing users to input a city name and receive data on temperature, humidity, and conditions.
+
+Developed for the [Course Name] course, applying User-Centred Design practices, agile project management processes, integrating a weather API, and Firebase backend services.
 
 ---
-
 
 ## Features
 
-- Browse a list of curated hiking trails with images and details
-- Mark and unmark trails as favorites
-- View a personalized list of favorite hikes
-- Responsive design for desktop and mobile
+Example:
+- Real-time weather updates for any city.
+- Responsive design for desktop and mobile.
+- Displays temperature, humidity, and weather conditions.
 
 ---
-
 
 ## Technologies Used
 
@@ -27,7 +29,6 @@ Developed for the COMP 1800 course, this project applies User-Centred Design pra
 - **Database**: Firestore
 
 ---
-
 
 ## Usage
 
@@ -44,59 +45,107 @@ Once the application is running:
 2.  Click the heart icon (or similar) to mark a trail as a favorite.
 3.  View your favorite hikes in the favorites section.
 
----
 
+---
+## Shared Navbar and Footer (Web Components)
+What this gives you:
+
+- A single source of truth for the navbar and footer
+- Same markup reused across all pages with `<site-navbar>` and `<site-footer>`
+- Easy customization by editing a single JavaScript file per component
+
+How to use it on any HTML page (e.g., `index.html`, `skeleton.html`):
+
+1) Import the components (in `<head>`):
+
+	```html
+	<script type="module" src="/src/components/site-navbar.js"></script>
+	<script type="module" src="/src/components/site-footer.js"></script>
+	```
+
+	Also load global scripts:
+
+	```html
+	<script type="module" src="/src/app.js"></script>
+	```
+
+	Notes:
+	- Bootstrap CSS and JS are imported in `src/app.js` via ES modules, so you don’t need extra `<link>` or `<script>` tags in HTML.
+	- Vite handles module loading during development with `npm run dev`.
+
+2) Drop the custom elements where you want them to render:
+
+	```html
+	<!-- our own navbar goes here -->
+	<site-navbar></site-navbar>
+
+	<!-- Main content goes here -->
+
+	<!-- our own footer goes here -->
+	<site-footer></site-footer>
+	```
+
+3) Customize the shared markup once:
+
+	- Edit `src/components/site-navbar.js` to change the navbar (brand, links, etc.)
+	- Edit `src/components/site-footer.js` to change the footer
+
+	Every page using `<site-navbar>` and `<site-footer>` will automatically reflect your changes.
 
 ## Project Structure
 
+Example:
 ```
-elmo-hikes/
-├── src/
-│   ├── main.js
-├── styles/
-│   └── style.css
-├── public/
-├── images/
-├── index.html
-├── package.json
-├── README.md
+my-project/
+├─ public/
+│  └─ images/
+├─ src/
+│  ├─ components/
+│  │  ├─ site-footer.js   ← shared footer Web Component
+│  │  └─ site-navbar.js   ← shared navbar Web Component
+│  ├─ styles/
+│  │  └─ style.css
+│  ├─ app.js              ← imports Bootstrap + global styles
+│  ├─ authentication.js
+│  ├─ firebaseConfig.js
+│  └─ loginSignup.js      ← login/signup UI logic
+├─ login.html
+├─ index.html
+└─ skeleton.html
+
 ```
 
 ---
-
 
 ## Contributors
-- **Sean** - I am a bcit student, I love email so much, I have more than one.
-- **Horad Ghaderi** - BCIT CST Student with a passion for computers and learning new skills in this field. He got so interested in bash that he want to learn how to work with Linux.
-- **Warren Chemerika** - BCIT CST Student with a passion for cars and programming and user-friendly applications.
+- **Your Name** - BCIT CST Student with a passion for creating user-friendly applications. Fun fact: Loves solving Rubik's Cubes in under a minute.
+- **Teammate Name** - BCIT CST Student, Frontend enthusiast with a knack for creative design. Fun fact: Has a collection of over 50 houseplants.
 
 ---
-
 
 ## Acknowledgments
 
-- Trail data and images are for demonstration purposes only.
-- Code snippets were adapted from resources such as [Stack Overflow](https://stackoverflow.com/) and [MDN Web Docs](https://developer.mozilla.org/).
+Example:
+- Weather data sourced from [OpenWeatherMap](https://openweathermap.org/).
+- Code snippets for ___ algoirthm were adapted from resources such as [Stack Overflow](https://stackoverflow.com/) and [MDN Web Docs](https://developer.mozilla.org/).
 - Icons sourced from [FontAwesome](https://fontawesome.com/) and images from [Unsplash](https://unsplash.com/).
 
 ---
 
-
 ## Limitations and Future Work
 ### Limitations
 
-- Limited trail details (e.g., no live trail conditions).
-- Accessibility features can be further improved.
+Example:
+- Currently, the app only supports city-based weather searches.
+- Limited to basic weather parameters like temperature, humidity, and conditions.
+- The user interface can be further enhanced for accessibility.
 
 ### Future Work
 
-- Implement map view and trailhead directions.
-- Add filtering and sorting options (e.g., by difficulty, distance).
+Example: 
+- Add support for location-based weather detection using GPS.
+- Implement additional weather parameters like wind speed and UV index.
 - Create a dark mode for better usability in low-light conditions.
+- Integrate user accounts for saving favorite locations.
 
 ---
-
-
-## License
-
-This project is licensed under the MIT License. See the LICENSE file for details.
