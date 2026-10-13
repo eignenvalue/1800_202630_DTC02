@@ -1,148 +1,53 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
+
+<head>
     <title>My BCIT Project</title>
-    <meta name="comp1800 template" content="My 1800 App" />
+    <meta name="comp1800 template" content="My 1800 App">
 
     <!-- Required meta tags -->
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <!-- Other libraries go here -->
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
-  </head>
+    <!-- Web Components for shared navbar and footer layout -->
+    <script type="module" src="/src/components/site-navbar.js"></script>
+    <script type="module" src="/src/components/site-footer.js"></script>
+</head>
 
-  <body>
+<body>
     <!------------------------------>
     <!-- Your HTML Layout go here -->
     <!------------------------------>
-    <!-- Stuff for body goes here -->
 
-    <!-- Top Nav -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-      <div class="container-fluid">
-        <a class="navbar-brand display-1" href="#">
-          <img src="./images/Community Learning Book Icon.png" height="36" />
-          Learntok
-        </a>
-        <button
-          class="navbar-toggler"
-          type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#navbarSupportedContent"
-          aria-controls="navbarSupportedContent"
-          aria-expanded="false"
-          aria-label="Toggle navigation"
-        >
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-            <!--
-            <li class="nav-item">
-              <a class="nav-link active" aria-current="page" href="#">Home</a>
-            </li>
-            -->
-            <li class="nav-item">
-              <a class="nav-link" href="#">Login</a>
-            </li>
+    <!-- our own navbar goes here -->
+    <site-navbar></site-navbar>
 
-            <li class="nav-item">
-              <a class="nav-link" href="#">Register</a>
-            </li>
-
-            <li class="nav-item dropdown">
-              <a
-                class="nav-link dropdown-toggle"
-                href="#"
-                id="navbarDropdown"
-                role="button"
-                data-bs-toggle="dropdown"
-                aria-expanded="false"
-              >
-                About
-              </a>
-              <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                <li><a class="dropdown-item" href="#">Company</a></li>
-                <li><a class="dropdown-item" href="#">History</a></li>
-                <li><hr class="dropdown-divider" /></li>
-                <li>
-                  <a class="dropdown-item" href="#">Contact us today!</a>
-                </li>
-              </ul>
-            </li>
-            <!--
-            <li class="nav-item">
-              <a
-                class="nav-link disabled"
-                href="#"
-                tabindex="-1"
-                aria-disabled="true"
-                >Disabled</a
-              >
-            </li>
-            -->
-          </ul>
-          <form class="d-flex">
-            <input
-              class="form-control me-2"
-              type="search"
-              placeholder="Search"
-              aria-label="Search"
-            />
-            <button class="btn btn-outline-success" type="submit">
-              Search
-            </button>
-          </form>
+    <!-- Main content goes here -->
+    <!-- This is the welcome on the landing page, with a login/signup button -->
+    <main class="container">
+        <div class=" px-4 py-5 my-5 text-center">
+            <img class="d-block mx-auto mb-4" src="/images/image.jpg" alt="" width="72" height="57">
+            <h1 class="display-5 fw-bold">Welcome to ElmoHikes, <span id="name-goes-here">my friend!</span></h1>
+            <div class="col-lg-6 mx-auto">
+                <p class="lead mb-4">Join a community of hikers looking for new places to explore.</p>
+                <h2>The view is better, together.</h2>
+                <div class="d-grid justify-content-sm-center">
+                    <!-- Make this button clickable, using onclick event listener -->
+                    <button onclick="window.location.href='login.html'" type="button"
+                        class="btn btn-info btn-lg">Login/Signup</button>
+                </div>
+            </div>
         </div>
-      </div>
-    </nav>
-    <!-- End of top Nav -->
+    </main>
 
-    <!--Welcome banner / Hero section-->
-    <div class="px-4 py-5 my-5 text-center">
-      <img
-        class="d-block mx-auto mb-4 mw-100 mh-50"
-        src="images/Welcome-pic-transparent-2.webp"
-        alt=""
-      />
-      <h1 class="display-5 fw-bold text-body-emphasis">Welcome to Learntok!</h1>
-      <div class="col-lg-6 mx-auto">
-        <p class="lead fw-bold">Upgrade Your Brain, One Swipe at a time</p>
-        <p class="lead mb-4">
-          Experts teach you skills in quick, powerful videos you'll actually
-          remember
-        </p>
-      </div>
-    </div>
-    <!--End of welcome banner-->
-
-    <!-- CTA -->
-    <div class="text-center">
-      <h2>Start Learning Today!</h2>
-      <p>Our platform has educational content.</p>
-      <a
-        class="p-3 text-white text-decoration-none bg-info d-inline-block"
-        href="/login"
-        >Login</a
-      >
-      <a
-        class="p-3 text-black text-decoration-none bg-light d-inline-block"
-        href="/register"
-        >Register</a
-      >
-    </div>
-    <!-- End of CTA -->
+    <!-- our own footer goes here -->
+    <site-footer></site-footer>
 
     <!---------------------------------------------->
-    <!-- Your own JavaScript functions go here    -->
+    <!-- Your own JavaScript scripts go here      -->
     <!---------------------------------------------->
+    <script type="module" src="/src/app.js"></script>
 
-    <!-- Link to scripts of your own -->
-    <script type="module" src="./src/main.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
-  </body>
+</body>
+
 </html>
