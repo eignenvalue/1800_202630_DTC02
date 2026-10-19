@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>View Message</title>
+    <meta name="comp1800 template" content="My 1800 App">
+
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Web Components for shared navbar and footer layout -->
+    <script type="module" src="/src/components/site-navbar.js"></script>
+    <script type="module" src="/src/components/site-footer.js"></script>
+    <script type="module" src="/src/components/bottom-navbar.js"></script>
+    <script type="module" src="/src/components/back-button.js"></script>
+</head>
+
+<body>
+    <!------------------------------>
+    <!-- Your HTML Layout go here -->
+    <!------------------------------>
+
+    <!-- Main content goes here -->
+    <main class="container-fluid min-vh-100 px-0 bg-body-tertiary">
+        <div class="row justify-content-center g-0">
+            <div class="col-12 col-md-8 col-xl-6">
+                <section class="card min-vh-100 border-0 rounded-0" aria-label="Conversation with John Doe">
+                    <header class="card-header sticky-top bg-body d-flex align-items-center gap-3 px-3 py-3">
+                        <back-button></back-button>
+                    <div class="position-absolute top-50 start-50 translate-middle d-flex align-items-center gap-2">
+                        <img
+                            src="https://mdbcdn.b-cdn.net/img/Photos/Avatars/avatar-8.webp"
+                            class="rounded-circle"
+                            width="48"
+                            height="48"
+                            alt="John Doe"
+                        >
+
+                        <div class="flex-grow-1">
+                            <h1 class="h6 fw-bold mb-0">John Doe</h1>
+                        </div>
+                     </div>
+
+                    </header>
+
+                    <div class="card-body d-flex flex-column gap-3 px-3 py-4">
+                        <div class="d-flex align-items-end gap-2">
+                            <img
+                                src="https://mdbcdn.b-cdn.net/img/Photos/Avatars/avatar-8.webp"
+                                class="rounded-circle flex-shrink-0"
+                                width="32"
+                                height="32"
+                                alt=""
+                            >
+                            <div>
+                                <div class="bg-body-secondary rounded-4 rounded-bottom-start-0 px-3 py-2">
+                                    Hi, how are you?
+                                </div>
+                                <small class="text-body-secondary ms-2">8:40 AM</small>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end">
+                            <div>
+                                <div class="bg-primary text-white rounded-4 rounded-bottom-end-0 px-3 py-2">
+                                    I’m good, thanks! How are you?
+                                </div>
+                                <small class="d-block text-body-secondary text-end me-2">8:55 AM</small>
+                            </div>
+                        </div>
+
+                        <div class="d-flex align-items-end gap-2">
+                            <img
+                                src="https://mdbcdn.b-cdn.net/img/Photos/Avatars/avatar-8.webp"
+                                class="rounded-circle flex-shrink-0"
+                                width="32"
+                                height="32"
+                                alt=""
+                            >
+                            <div>
+                                <div class="bg-body-secondary rounded-4 rounded-bottom-start-0 px-3 py-2">
+                                    I’m doing well. Are you free for a hike this weekend?
+                                </div>
+                                <small class="text-body-secondary ms-2">9:00 AM</small>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end">
+                            <div>
+                                <div class="bg-primary text-white rounded-4 rounded-bottom-end-0 px-3 py-2">
+                                    Yes! Send me the trail details.
+                                </div>
+                                <small class="d-block text-body-secondary text-end me-2">9:05 AM</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <footer class="card-footer bg-body border-top px-3 py-3">
+                        <form class="input-group">
+  
+                            </button>
+                            <label class="visually-hidden" for="message-input">Type your message</label>
+                            <input
+                                id="message-input"
+                                class="form-control"
+                                type="text"
+                                placeholder="Type your message..."
+                            >
+                            <button class="btn btn-primary" type="submit" aria-label="Send message">
+                                <i class="bi bi-send-fill"></i>
+                            </button>
+                        </form>
+                    </footer>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <bottom-navbar></bottom-navbar>
+    
+    <!---------------------------------------------->
+    <!-- Your own JavaScript scripts go here      -->
+    <!---------------------------------------------->
+
+    <script type="module" src="/src/app.js"></script>
+
+</body>
+
+</html>

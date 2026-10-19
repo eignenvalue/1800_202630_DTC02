@@ -11,7 +11,7 @@ function showName() {
             document.getElementById("name-goes-here").textContent = name + "!";
         } else {
             // User is NOT logged in
-            location.href = "index.html";  // Redirect to login page
+  //          location.href = "index.html";  // Redirect to login page
         }
     });
 }
