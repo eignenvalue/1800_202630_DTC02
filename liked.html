@@ -13,6 +13,7 @@
     <script type="module" src="/src/components/site-navbar.js"></script>
     <script type="module" src="/src/components/site-footer.js"></script>
     <script type="module" src="/src/components/bottom-navbar.js"></script>
+    <script type = "module" src = "/src/components/back-button.js"></script>
 </head>
 
 <body>
@@ -27,10 +28,16 @@
 
     <section class="jumbotron text-center">
         <div class="container pt-4">
-            <h1 class="jumbotron-heading">Liked page</h1>
+            <div class="position-relative d-flex align-items-center py-3">
+            <back-button></back-button>
+            <h1 class="position-absolute top-50 start-50 translate-middle mb-0">
+                Saved Likes
+            </h1>
+            
+            </div>
             <p class="lead text-muted">
-                <i class="bi bi-heart-fill fs-1 d-block text-danger"></i>
-                <medium>saved likes</medium>
+                <i class="bi bi-heart-fill display-1 d-block text-danger"></i>
+  
             </p>
         </div>
     </section>
