@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>My BCIT Project</title>
+    <meta name="comp1800 template" content="My 1800 App" />
+
+    <!-- Required meta tags -->
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- Web Components for shared navbar and footer layout -->
+    <script type="module" src="/src/components/site-navbar.js"></script>
+    <script type="module" src="/src/components/site-footer.js"></script>
+    <script type="module" src="/src/components/assignment.js"></script>
+    <style>
+      .title {
+        display: flex;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 70px;
+        margin-bottom: 100px;
+      }
+      .quiz {
+        margin-left: 50px;
+      }
+      .each-quiz {
+        margin-top: 20px;
+        font-size: 20px;
+      }
+      .question {
+        font-weight: bold;
+        margin-top: 60px;
+        margin-bottom: 60px;
+      }
+
+    </style>
+  </head>
+
+  <body>
+    <!------------------------------>
+    <!-- Your HTML Layout go here -->
+    <!------------------------------>
+    <!-- our own navbar goes here -->
+    <site-navbar></site-navbar>
+    <back-button></back-button>
+    <h1 class="title">Quiz</h1>
+    <form class="d-flex flex-column justify-content-center align-items-center" method="POST" action="http://localhost:5174/index.html">
+      <div>
+        <div class="quiz">
+          <h1 class="question">What do you think about a?</h1>
+          <div class="each-quiz form-check">
+            <input
+              class="form-check-input"
+              type="radio"
+              name="q1"
+              id="exampleRadios1"
+              value="option1"
+              checked
+            />
+            <label class="form-check-label" for="exampleRadios1">
+              Default radio
+            </label>
+          </div>
+          <div class="each-quiz form-check">
+            <input
+              class="form-check-input"
+              type="radio"
+              name="q1"
+              id="exampleRadios2"
+              value="option2"
+            />
+            <label class="form-check-label" for="exampleRadios2">
+              Second default radio
+            </label>
+          </div>
+          <div class="each-quiz form-check">
+            <input
+              class="each-quiz form-check-input"
+              type="radio"
+              name="q1"
+              id="exampleRadios3"
+              value="option3"
+            />
+            <label class="form-check-label" for="exampleRadios3">
+              Disabled radio
+            </label>
+          </div>
+          <div class="each-quiz form-check">
+            <input
+              class="form-check-input"
+              type="radio"
+              name="q1"
+              id="exampleRadios1"
+              value="option4"
+              checked
+            />
+            <label class="form-check-label" for="exampleRadios1">
+              Default radio
+            </label>
+          </div>
+        </div>
+        <div class="quiz">
+          <hr />
+          <h1 class="question">What do you think about b?</h1>
+          <div class="each-quiz form-check">
+            <input
+              class="form-check-input"
+              type="radio"
+              name="q2"
+              id="exampleRadios1"
+              value="option1"
+              checked
+            />
+            <label class="form-check-label" for="exampleRadios1">
+              Default radio
+            </label>
+          </div>
+          <div class="each-quiz form-check">
+            <input
+              class="form-check-input"
+              type="radio"
+              name="q2"
+              id="exampleRadios2"
+              value="option2"
+            />
+            <label class="form-check-label" for="exampleRadios2">
+              Second default radio
+            </label>
+          </div>
+          <div class="each-quiz form-check">
+            <input
+              class="form-check-input"
+              type="radio"
+              name="q2"
+              id="exampleRadios3"
+              value="option3"
+            />
+            <label class="form-check-label" for="exampleRadios3">
+              Disabled radio
+            </label>
+          </div>
+          <div class="each-quiz form-check">
+            <input
+              class="form-check-input"
+              type="radio"
+              name="q2"
+              id="exampleRadios1"
+              value="option4"
+              checked
+            />
+            <label class="form-check-label" for="exampleRadios1">
+              Default radio
+            </label>
+          </div>
+        </div>
+        <div class="quiz">
+          <hr />
+          <h1 class="question">What do you think about c?</h1>
+          <div class="each-quiz form-check">
+            <input
+              class="form-check-input"
+              type="radio"
+              name="q3"
+              id="exampleRadios1"
+              value="option1"
+              checked
+            />
+            <label class="form-check-label" for="exampleRadios1">
+              Default radio
+            </label>
+          </div>
+          <div class="each-quiz form-check">
+            <input
+              class="each-quiz form-check-input"
+              type="radio"
+              name="q3"
+              id="exampleRadios2"
+              value="option2"
+            />
+            <label class="form-check-label" for="exampleRadios2">
+              Second default radio
+            </label>
+          </div>
+          <div class="each-quiz form-check">
+            <input
+              class="form-check-input"
+              type="radio"
+              name="q3"
+              id="exampleRadios3"
+              value="option3"
+            />
+            <label class="form-check-label" for="exampleRadios3">
+              Disabled radio
+            </label>
+          </div>
+          <div class="each-quiz form-check">
+            <input
+              class="form-check-input"
+              type="radio"
+              name="q3"
+              id="exampleRadios1"
+              value="option4"
+              checked
+            />
+            <label class="form-check-label" for="exampleRadios1">
+              Default radio
+            </label>
+          </div>
+        </div>
+        <div class="quiz">
+          <hr />
+          <h1 class="question">What do you think about d?</h1>
+          <div class="each-quiz form-check">
+            <input
+              class="form-check-input"
+              type="radio"
+              name="q4"
+              id="exampleRadios1"
+              value="option1"
+              checked
+            />
+            <label class="form-check-label" for="exampleRadios1">
+              Default radio
+            </label>
+          </div>
+          <div class="each-quiz form-check">
+            <input
+              class="form-check-input"
+              type="radio"
+              name="q4"
+              id="exampleRadios2"
+              value="option2"
+            />
+            <label class="form-check-label" for="exampleRadios2">
+              Second default radio
+            </label>
+          </div>
+          <div class="each-quiz form-check">
+            <input
+              class="each-quiz form-check-input"
+              type="radio"
+              name="q4"
+              id="exampleRadios3"
+              value="option3"
+            />
+            <label class="form-check-label" for="exampleRadios3">
+              Disabled radio
+            </label>
+          </div>
+          <div class="each-quiz form-check">
+            <input
+              class="form-check-input"
+              type="radio"
+              name="q4"
+              id="exampleRadios1"
+              value="option4"
+              checked
+            />
+            <label class="form-check-label" for="exampleRadios1">
+              Default radio
+            </label>
+          </div>
+        </div>
+        <div class="quiz">
+          <hr />
+          <h1 class="question">What do you think about e?</h1>
+          <div class="each-quiz form-check">
+            <input
+              class="form-check-input"
+              type="radio"
+              name="q5"
+              id="exampleRadios1"
+              value="option1"
+              checked
+            />
+            <label class="form-check-label" for="exampleRadios1">
+              Default radio
+            </label>
+          </div>
+          <div class="each-quiz form-check">
+            <input
+              class="form-check-input"
+              type="radio"
+              name="q5"
+              id="exampleRadios2"
+              value="option2"
+            />
+            <label class="form-check-label" for="exampleRadios2">
+              Second default radio
+            </label>
+          </div>
+          <div class="each-quiz form-check">
+            <input
+              class="form-check-input"
+              type="radio"
+              name="q5"
+              id="exampleRadios3"
+              value="option3"
+            />
+            <label class="form-check-label" for="exampleRadios3">
+              Disabled radio
+            </label>
+          </div>
+          <div class="each-quiz form-check">
+            <input
+              class="form-check-input"
+              type="radio"
+              name="q5"
+              id="exampleRadios1"
+              value="option4"
+              checked
+            />
+            <label class="form-check-label" for="exampleRadios1">
+              Default radio
+            </label>
+          </div>
+        </div>
+        <div class="quiz">
+          <hr />
+          <h1 class="question">What do you think about f?</h1>
+          <div class="each-quiz form-check">
+            <input
+              class="form-check-input"
+              type="radio"
+              name="q6"
+              id="exampleRadios1"
+              value="option1"
+              checked
+            />
+            <label class="form-check-label" for="exampleRadios1">
+              Default radio
+            </label>
+          </div>
+          <div class="each-quiz form-check">
+            <input
+              class="form-check-input"
+              type="radio"
+              name="q6"
+              id="exampleRadios2"
+              value="option2"
+            />
+            <label class="form-check-label" for="exampleRadios2">
+              Second default radio
+            </label>
+          </div>
+          <div class="each-quiz form-check">
+            <input
+              class="form-check-input"
+              type="radio"
+              name="q6"
+              id="exampleRadios3"
+              value="option3"
+            />
+            <label class="form-check-label" for="exampleRadios3">
+              Disabled radio
+            </label>
+          </div>
+          <div class="each-quiz form-check">
+            <input
+              class="form-check-input"
+              type="radio"
+              name="q6"
+              id="exampleRadios1"
+              value="option4"
+              checked
+            />
+            <label class="form-check-label" for="exampleRadios1">
+              Default radio
+            </label>
+          </div>
+        </div>
+      </div>
+      <input class="button btn btn-primary mt-5 w-25" type="submit" value="Submit" />
+    </form>
+
+    <!-- Main content goes here -->
+
+    <!-- our own footer goes here -->
+    <site-footer></site-footer>
+
+    <!---------------------------------------------->
+    <!-- Your own JavaScript scripts go here      -->
+    <!---------------------------------------------->
+
+    <script type="module" src="/src/app.js"></script>
+    <script type="module" src="/src/main.js"></script>
+    <script src="src/components/back-button.js"></script>
+  </body>
+</html>
