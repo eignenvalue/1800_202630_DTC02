@@ -27,7 +27,7 @@ class VideoFilters extends HTMLElement {
 
         const minimum = 0;
         const maximum = -(event.target.offsetWidth) + this.offsetWidth;
-        const lval = -(this.startDragging - event.clientX);
+        let lval = -(this.startDragging - event.clientX);
 
         if (lval > minimum) {
             lval = minimum;
