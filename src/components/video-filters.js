@@ -48,7 +48,7 @@ class VideoFilters extends HTMLElement {
     render() {
 
         let parent = document.createElement('ul');
-        parent.classList.add('width-max-content', 'd-flex', 'flex-row', 'list-style-none', 'm-0', 'p-0')
+        parent.classList.add('width-max-content', 'd-flex', 'flex-row', 'list-unstyled', 'm-0', 'p-0');
 
         for (let i = 0; i < this.#filters.length; i++) {
             let li = document.createElement('li');
@@ -58,7 +58,7 @@ class VideoFilters extends HTMLElement {
             element.innerText = this.#filters[i];
             element.classList.add('border', 'rounded', 'p-2', 'text-white', 'text-decoration-none', 'user-select-none')
             element.style.marginRight = '1rem';
-            parent.appendChild(element);
+            parent.appendChild(li);
         }
 
         this.append(parent);
