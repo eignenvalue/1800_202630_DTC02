@@ -113,7 +113,7 @@ class ScrollableVideoManager extends HTMLElement {
 
     async render() {
         if (this.#queue.length == 0) {
-            await this.loadQueueByPage(this.#page)
+            this.#queue = await this.loadQueueByPage(this.#page)
         }
 
         this.innerHTML = `

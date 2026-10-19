@@ -1,6 +1,5 @@
 
 class VideoElement extends HTMLElement {
-    #url;
 
     static get observedAttributes() {
         return ['url'];
@@ -8,21 +7,12 @@ class VideoElement extends HTMLElement {
 
     constructor() {
         super();
-        this.#url = undefined;
-    }
-
-    setUrl(url) {
-        this.#url = url;
-    }
-
-    getUrl() {
-        return this.#url;
     }
 
     render() {
         this.innerHTML = `
             <video width="400px" height="800px" controls>
-                <source src="${this.#url}" type="video/webm"/>
+                <source src="${this.url}" type="video/webm"/>
                 Video not available.
             </video>
         `;
@@ -32,6 +22,10 @@ class VideoElement extends HTMLElement {
         if (oldValue !== newValue) {
             this.render();
         }
+    }
+
+    get url() {
+        return this.getAttribute('url');
     }
 
     connectedCallback() {

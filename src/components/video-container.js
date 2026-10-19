@@ -13,6 +13,10 @@ class VideoContainer extends HTMLElement {
         }
     }
 
+    get url() {
+        return this.getAttribute('url');
+    }
+
     render() {
         this.innerHTML = `
             <div class="position-relative height-max-content width-max-content">
