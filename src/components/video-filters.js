@@ -11,6 +11,7 @@ class VideoFilters extends HTMLElement {
         this.mouseDownLeft = 0;
         this.dragging = false;
 
+        // each could have an icon
         this.#filters = ['Science', 'Math', 'Art', 'Technology', 'Graphic Design', 'Programming', 'Engineering']
     }
 
@@ -23,13 +24,17 @@ class VideoFilters extends HTMLElement {
 
     isDragging(event) {
         if (!this.dragging) return;
-        console.log('dragon balls', event);
-        const minimum = 0;
 
-        let lval = -(this.startDragging - event.clientX);
+        const minimum = 0;
+        const maximum = -(event.target.offsetWidth) + this.offsetWidth;
+        const lval = -(this.startDragging - event.clientX);
 
         if (lval > minimum) {
             lval = minimum;
+        }
+
+        if (lval < maximum) {
+            lval = maximum;
         }
 
         this.currentOffset = lval;
@@ -45,7 +50,6 @@ class VideoFilters extends HTMLElement {
 
         let parent = document.createElement('ul');
         parent.classList.add('width-max-content', 'd-flex', 'flex-row', 'list-style-none', 'm-0', 'p-0')
-        parent.style.left = this.#left;
 
         for (let i = 0; i < this.#filters.length; i++) {
             let li = document.createElement('li');
@@ -53,7 +57,7 @@ class VideoFilters extends HTMLElement {
             li.appendChild(element);
             element.role = 'button';
             element.innerText = this.#filters[i];
-            element.classList.add('border', 'rounded', 'p-2', 'text-white', 'text-decoration-none')
+            element.classList.add('border', 'rounded', 'p-2', 'text-white', 'text-decoration-none', 'user-select-none')
             element.style.marginRight = '1rem';
             parent.appendChild(element);
         }
