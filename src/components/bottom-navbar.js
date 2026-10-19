@@ -12,12 +12,12 @@ class BottomNavbar extends HTMLElement {
                         <small>Home</small>
                     </a>
 
-                    <a href="/messages" class="nav-link flex-fill text-center text-white">
+                    <a href="messages.html" class="nav-link flex-fill text-center text-white">
                         <i class="bi bi-chat-dots fs-4 d-block"></i>
                         <small>Messages</small>
                     </a>
 
-                    <a href="/liked" class="nav-link flex-fill text-center text-white">
+                    <a href="liked.html" class="nav-link flex-fill text-center text-white">
                         <i class="bi bi-heart-fill fs-4 d-block"></i>
                         <small>Liked</small>
                     </a>
