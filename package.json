@@ -10,9 +10,15 @@
   "dependencies": {
     "@popperjs/core": "^2.11.8",
     "bootstrap": "^5.3.8",
-    "firebase": "^13.0.0"
+    "bootstrap-icons": "^1.13.2",
+    "firebase": "^13.0.0",
+    "marked": "^18.1.1"
   },
   "devDependencies": {
     "vite": "^7.1.9"
+  },
+  "allowScripts": {
+    "bootstrap-icons@1.13.2": true,
+    "marked@18.1.1": true
   }
 }
