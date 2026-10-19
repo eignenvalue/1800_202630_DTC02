@@ -4,7 +4,7 @@
 class VideoContainer extends HTMLElement {
 
     static get observedAttributes() {
-        return ['url'];
+        return ['id', 'url', 'creatorName', 'creatorId', 'title', 'description'];
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
@@ -13,8 +13,30 @@ class VideoContainer extends HTMLElement {
         }
     }
 
+    // write get s and it'll work :)
+    // then finish styling and add the fake filters
+    get id() {
+        return this.getAttribute('id');
+    }
+
     get url() {
         return this.getAttribute('url');
+    }
+
+    get creatorName() {
+        return this.getAttribute('creatorName');
+    }
+
+    get creatorId() {
+        return this.getAttribute('creatorId');
+    }
+
+    get title() {
+        return this.getAttribute('title');
+    }
+
+    get description() {
+        return this.getAttribute('description');
     }
 
     render() {
@@ -26,20 +48,18 @@ class VideoContainer extends HTMLElement {
                 <video-element url="${this.url}"></video-element>
             
                 <div class="position-absolute" style="bottom: 30px; right: 0;">
-                    <video-side-navbar></video-side-navbar>
+                    <video-side-navbar videoId="${this.id}"></video-side-navbar>
                 </div>
                 
-                <!-- Video title/description -->
-                <!-- Create a class for description 
-                     (to hide summary title when 
-                     details visible and whatnot) -->
+
                 <div class="position-absolute" style="bottom: 0; left: 0;">
-                    <details>
+                    <!-- move into component -->
+                    <details class="text-white ">
                         <summary>
-                            <h1>this is a video title</h1>
+                            <h2>${this.creatorName}<h2>
+                            <h3>${this.title}</h3>
                         </summary>
-                        <h1>This is a video title</h1>
-                        <p>This is a video description</p>
+                        <p>${this.description}</p>
                     </details>
                 </div>
             </div>

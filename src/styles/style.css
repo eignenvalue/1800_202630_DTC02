@@ -6,3 +6,6 @@
     height: max-content;
 }
 
+details>summary {
+    list-style: none;
+}

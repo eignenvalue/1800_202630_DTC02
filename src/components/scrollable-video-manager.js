@@ -48,14 +48,30 @@ class ScrollableVideoManager extends HTMLElement {
             */
 
             return [
-                '/videos/1.webm',
-                '/videos/2.webm',
-                '/videos/3.webm',
-                '/videos/4.webm',
-                '/videos/5.webm',
-                '/videos/6.webm',
-                '/videos/7.webm',
-                '/videos/8.webm',
+                {
+                    id: 0,
+                    url: '/videos/0.webm',
+                    creatorName: 'user0',
+                    creatorId: 0,
+                    title: 'this is the title',
+                    description: 'this is the description'
+                },
+                {
+                    id: 1,
+                    url: '/videos/1.webm',
+                    creatorName: 'user1',
+                    creatorId: 1,
+                    title: 'this is the title',
+                    description: 'this is the description'
+                },
+                {
+                    id: 2,
+                    url: '/videos/2.webm',
+                    creatorName: 'user2',
+                    creatorId: 2,
+                    title: 'this is the title',
+                    description: 'this is the description'
+                },
             ]
         } catch (error) {
             // don't console.error(error);
@@ -96,29 +112,39 @@ class ScrollableVideoManager extends HTMLElement {
         }
     }
 
-    #handleMWheelDown() {
+    #handleMWheelDown(event) {
 
 
     }
 
-    #handleMWheelUp() {
+    #handleMWheelUp(event) {
 
     }
 
-    #handleTouchDrag() {
+    #handleTouchDrag(event) {
 
 
         // use switch for direction
     }
 
     async render() {
-        if (this.#queue.length == 0) {
+        if (this.#queue.length == 0 || this.#queue.length - 1 == this.#queuePosition) {
             this.#queue = await this.loadQueueByPage(this.#page)
+            this.#page++;
         }
+
+        const currentVideoInfo = this.#queue[this.#queuePosition];
 
         this.innerHTML = `
             <div class="">
-                <video-container url="${this.#queue[this.#queuePosition]}"></video-container>
+                <video-container 
+                    id="${currentVideoInfo.id}"
+                    url="${currentVideoInfo.url}"
+                    creatorName="${currentVideoInfo.creatorName}"
+                    creatorId="${currentVideoInfo.creatorId}"
+                    title="${currentVideoInfo.title}"
+                    description="${currentVideoInfo.description}"
+                ></video-container>
             </div>
         `;
 
