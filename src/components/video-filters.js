@@ -16,7 +16,6 @@ class VideoFilters extends HTMLElement {
     }
 
     initDrag(event) {
-        console.log(event);
         this.dragging = true;
         this.startDragging = event.clientX - this.currentOffset;
         event.currentTarget.setPointerCapture(event.pointerId);
