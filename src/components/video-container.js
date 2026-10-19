@@ -41,11 +41,13 @@ class VideoContainer extends HTMLElement {
 
     render() {
         this.innerHTML = `
-            <div class="position-relative height-max-content width-max-content">
+            <div class="overflow-hidden position-relative height-max-content width-max-content">
                 
-                <!-- Keep in background -->
-                <!-- Initial Video -->
                 <video-element url="${this.url}"></video-element>
+
+                <div class="position-absolute w-100" style="top: 20px; left: 0;">
+                    <video-filters></video-filters>
+                </div>
             
                 <div class="position-absolute" style="bottom: 30px; right: 0;">
                     <video-side-navbar videoId="${this.id}"></video-side-navbar>
