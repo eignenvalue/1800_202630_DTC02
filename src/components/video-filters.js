@@ -26,17 +26,29 @@ class VideoFilters extends HTMLElement {
 
         const minimum = 0;
         const maximum = -(event.target.offsetWidth) + this.offsetWidth;
+
+        console.log(this)
+        console.log(event.target.offsetWidth, this.offsetWidth)
+        console.log(minimum, maximum)
+
+        console.log(this.startDragging, event.clientX)
+
         let lval = -(this.startDragging - event.clientX);
+
+        console.log(lval)
 
         if (lval > minimum) {
             lval = minimum;
         }
 
+        // this is breaking as of now
         if (lval < maximum) {
             lval = maximum;
         }
 
+        console.log('determined lval', lval)
         this.currentOffset = lval;
+        console.log('---')
 
         this.parentElement.style.left = `${lval}px`;
     }
