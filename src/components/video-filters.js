@@ -63,6 +63,7 @@ class VideoFilters extends HTMLElement {
     render() {
 
         let parent = document.createElement('ul');
+        parent.id = 'scrollableVideoFilters';
         parent.classList.add('width-max-content', 'd-flex', 'flex-row', 'list-unstyled', 'm-0', 'p-0');
 
         for (let i = 0; i < this.#filters.length; i++) {
