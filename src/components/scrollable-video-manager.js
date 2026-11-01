@@ -161,7 +161,7 @@ class ScrollableVideoManager extends HTMLElement {
         const currentVideoInfo = this.#queue[this.#queuePosition];
 
         this.innerHTML = `
-            <div class="position-relative w-max-content overflow-hidden">
+            <div class="position-relative width-max-content overflow-hidden">
             
                 <div class="position-absolute z-3" style="top: 20px; left: 0;">
                     <video-filters videoElementWidth="${this.#width}"></video-filters>
