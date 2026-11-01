@@ -1,5 +1,4 @@
 class VideoFilters extends HTMLElement {
-    #left;
     #filters;
 
     constructor() {
@@ -15,6 +14,16 @@ class VideoFilters extends HTMLElement {
         this.#filters = ['Science', 'Math', 'Art', 'Technology', 'Graphic Design', 'Programming', 'Engineering']
     }
 
+    static get observedAttributes() {
+        return ['videoElementWidth'];
+    }
+
+    attributeChangedCallback(name, oldValue, newValue) {
+        if (oldValue !== newValue) {
+            this.render();
+        }
+    }
+
     initDrag(event) {
         this.dragging = true;
         this.startDragging = event.clientX - this.currentOffset;
@@ -24,33 +33,34 @@ class VideoFilters extends HTMLElement {
     isDragging(event) {
         if (!this.dragging) return;
 
+        let listWidth = this.querySelector('ul').clientWidth;
         const minimum = 0;
-        const maximum = -(event.target.offsetWidth) + this.offsetWidth;
-
-        console.log(this)
-        console.log(event.target.offsetWidth, this.offsetWidth)
-        console.log(minimum, maximum)
-
-        console.log(this.startDragging, event.clientX)
+        const maximum = -(listWidth - this.videoElementWidth)
 
         let lval = -(this.startDragging - event.clientX);
-
-        console.log(lval)
 
         if (lval > minimum) {
             lval = minimum;
         }
 
-        // this is breaking as of now
+        // this part is broken.
+        // how to find best maximum.
+
         if (lval < maximum) {
             lval = maximum;
         }
 
-        console.log('determined lval', lval)
         this.currentOffset = lval;
-        console.log('---')
+
+        let ul = this.querySelector('ul')
+        console.log(ul.clientWidth)
+        console.log(ul)
 
         this.parentElement.style.left = `${lval}px`;
+    }
+
+    get videoElementWidth() {
+        return this.getAttribute('videoElementWidth');
     }
 
     stopDragging(event) {

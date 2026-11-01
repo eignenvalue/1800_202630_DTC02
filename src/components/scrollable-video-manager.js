@@ -6,12 +6,17 @@ class ScrollableVideoManager extends HTMLElement {
     #queue;
     #queuePosition;
     #page;
+    #width;
+    #height;
 
-    constructor() {
+    constructor(width = 400, height = 800) {
         super();
         this.#queue = [] // use set so no repeat urls
         this.#queuePosition = 0
         this.#page = 0
+
+        this.#width = width;
+        this.#height = height;
 
         this.#queue = [];
     }
@@ -127,6 +132,26 @@ class ScrollableVideoManager extends HTMLElement {
         // use switch for direction
     }
 
+
+    /*
+
+    To create the intended scrolling functionality (like 2 or more videos)
+    I need 3 video elements always on the DOM.
+
+    like so
+
+    - <-- this is the last video in the queue
+    - <-- this is the only visible part of the dom in the video player.
+    - <-- this is the next video in the queue
+
+    when the user scrolls the current video up or down to go back or forward
+    the video coming in should be locked to the top of bottom of the current
+    video.
+
+
+
+    */
+
     async render() {
         if (this.#queue.length == 0 || this.#queue.length - 1 == this.#queuePosition) {
             this.#queue = await this.loadQueueByPage(this.#page)
@@ -136,7 +161,12 @@ class ScrollableVideoManager extends HTMLElement {
         const currentVideoInfo = this.#queue[this.#queuePosition];
 
         this.innerHTML = `
-            <div class="">
+            <div class="position-relative w-max-content overflow-hidden">
+            
+                <div class="position-absolute z-3" style="top: 20px; left: 0;">
+                    <video-filters videoElementWidth="${this.#width}"></video-filters>
+                </div>
+
                 <video-container 
                     id="${currentVideoInfo.id}"
                     url="${currentVideoInfo.url}"
@@ -144,12 +174,17 @@ class ScrollableVideoManager extends HTMLElement {
                     creatorId="${currentVideoInfo.creatorId}"
                     title="${currentVideoInfo.title}"
                     description="${currentVideoInfo.description}"
+                    width="${this.#width}"
+                    height="${this.#height}"
                 ></video-container>
             </div>
         `;
 
         this.addEventListener('mwheeldown', this.#handleMWheelDown);
         this.addEventListener('mwheelup', this.#handleMWheelUp);
+
+        // could also do drag using pointer events (for both kbm and mobile)
+        // as well as mwheelup/down
 
         // do a click listener (or nothing cause details/summary) on the
         // description section keep it above the video
