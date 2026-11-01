@@ -35,7 +35,7 @@ class VideoFilters extends HTMLElement {
 
         let listWidth = this.querySelector('ul').clientWidth;
         const minimum = 0;
-        const maximum = -(listWidth - this.videoElementWidth)
+        const maximum = -(listWidth - Number(this.videoElementWidth))
 
         let lval = -(this.startDragging - event.clientX);
 
@@ -43,18 +43,11 @@ class VideoFilters extends HTMLElement {
             lval = minimum;
         }
 
-        // this part is broken.
-        // how to find best maximum.
-
         if (lval < maximum) {
             lval = maximum;
         }
 
         this.currentOffset = lval;
-
-        let ul = this.querySelector('ul')
-        console.log(ul.clientWidth)
-        console.log(ul)
 
         this.parentElement.style.left = `${lval}px`;
     }
@@ -83,6 +76,7 @@ class VideoFilters extends HTMLElement {
             parent.appendChild(li);
         }
 
+        this.replaceChildren()
         this.append(parent);
 
         parent.addEventListener('pointerdown', this.initDrag.bind(this));
