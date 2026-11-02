@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>My BCIT Project</title>
+    <meta name="comp1800 template" content="My 1800 App" />
+
+    <!-- Required meta tags -->
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- Web Components for shared navbar and footer layout -->
+    <script type="module" src="/src/components/site-navbar.js"></script>
+    <script type="module" src="/src/components/site-footer.js"></script>
+    <style>
+      .title {
+        display: flex;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 70px;
+        margin-bottom: 100px;
+      }
+      .quiz {
+        margin-left: 50px;
+      }
+      .each-quiz {
+        margin-top: 20px;
+        font-size: 20px;
+      }
+      .question {
+        font-weight: bold;
+        margin-top: 60px;
+        margin-bottom: 60px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!------------------------------>
+    <!-- Your HTML Layout go here -->
+    <!------------------------------>
+    <!-- our own navbar goes here -->
+    <site-navbar></site-navbar>
+    <back-button></back-button>
+    <h1 class="title">Quiz</h1>
+    <quiz-component id="testQuiz"></quiz-component>
+
+    <!-- Main content goes here -->
+
+    <!-- our own footer goes here -->
+    <site-footer></site-footer>
+
+    <!---------------------------------------------->
+    <!-- Your own JavaScript scripts go here      -->
+    <!---------------------------------------------->
+
+    <script type="module" src="/src/app.js"></script>
+    <script src="src/components/back-button.js"></script>
+    <script type="module" src="/src/components/quiz-component.js"></script>
+    <script type="module">
+      document.getElementById("testQuiz").quiz = [
+        {
+          question: "1- What is 2 + 2?",
+          possibleAnswers: [1, 2, 3, 4],
+          correctAnswers: [3],
+          type: "radio",
+        },
+        {
+          question: "2- Which are even?",
+          possibleAnswers: [1, 2, 3, 4],
+          correctAnswers: [1, 3],
+          type: "checkbox",
+        },
+        {
+          question: "3- True or False?",
+          possibleAnswers: ["True", "False"],
+          correctAnswers: [0],
+          type: "radio",
+        },
+        {
+          question: "4- Where are you from?",
+          possibleAnswers: ["Toronto", "Montreal", "Vancouver", "Calgary"],
+          correctAnswers: [2],
+          type: "radio",
+        },
+        {
+          question: "5- Only choose one.",
+          possibleAnswers: ["A", "B", "C", "D"],
+          correctAnswers: [0],
+          type: "radio",
+        },
+        {
+          question: "6- Is JS easy?",
+          possibleAnswers: ["Yes", "No"],
+          correctAnswers: [1],
+          type: "radio",
+        },
+      ];
+    </script>
+  </body>
+</html>
