@@ -8,27 +8,6 @@ import {
     deleteDoc, deleteField
 } from "firebase/firestore";
 
-// const postRef = doc(db, "posts", "firstPost");
-/*
-const usersRef = collection(db, "users");
-
-const videosRef = collection(db, "videos");
-
-const snap = await getDocs(usersRef);
-console.log(snap);
-snap.forEach(item => {
-    console.log(item.data());
-});
-*/
-
-[
-    {
-        userId: '',
-        title: 'this is the title',
-        description: 'this is the description',
-    }
-]
-
 /*
 
 Make videos collection
@@ -38,6 +17,7 @@ Add videos document for a video.
 {
     user_id: '...', // uuid
     username?: '...', // string
+    filename: '1.webm',
     title: '...', // string
     description: '...', // string
     quiz: [
@@ -50,10 +30,19 @@ Add videos document for a video.
         {
             ...
         } // object
-    ] // list
+    ], // list of objects
+    liked_by: [
+        'jk3h4kjl23h4kjh34jk...',
+        '...'
+    ], // list of strings (UUIDs)
+    like_count: 100 // integer
 }, // object
 
 */
+
+// const videosRef = collection(db, "videos");
+
+// https://claude.ai/chat/23d5292e-0f6d-4323-8ac2-6aa5f893cfc5
 
 async function sendDataToServer(event) {
     event.preventDefault();
@@ -75,5 +64,3 @@ async function sendDataToServer(event) {
 
     console.log(docRef.id);
 }
-
-sendMessageToUserForm.addEventListener('submit', sendDataToServer)

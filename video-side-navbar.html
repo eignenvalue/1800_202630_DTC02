@@ -24,122 +24,43 @@
 
     <!-- A form to send a message to another user with some ID -->
 
-    <form id="sendMessageToUserForm" class="d-flex flex-column text-black">
+    <form id="uploadForm">
 
-        <!-- <input type="file" name="video"> -->
-        <label for="video-url">
-            <input id="video-url" type="text" name="video-url" placeholder="Video URL">
-        </label>
-
-        <label for="title">
-            <input type="text" name="title" id="title" placeholder="Video Title" maxlength="80" required>
-        </label>
-
-        <label for="description">
-            <input type="text" name="description" id="description" placeholder="Description" maxlength="255" required>
-        </label>
-
-        <!-- print from JS -->
         <div class="d-flex flex-column">
-            <h2>Tags:</h2>
-            <label for="tag-checkbox-1">
-                <input id="tag-checkbox-1" type="checkbox" name="tags[]" value="Science"> Science
+            <label for="video-url">
+                <input id="video-url" type="text" name="video-url" placeholder="Video URL">
             </label>
-            <label for="tag-checkbox-2">
-                <input id="tag-checkbox-2" type="checkbox" name="tags[]" value="Mathematics"> Mathematics
+
+            <label for="title">
+                <input type="text" name="title" id="title" placeholder="Video Title" maxlength="80" required>
+            </label>
+
+            <label for="description">
+                <input type="text" name="description" id="description" placeholder="Description" maxlength="255"
+                    required>
             </label>
         </div>
 
-        <!-- Add javascript for creating dynamic inputs for unlimited questions (and types) -->
-        <div>
-            <h2>Quiz:</h2>
+        <tag-picker></tag-picker>
 
-            <div id="quizForm">
-                <div>
-                    <button role="button">Add Question</button>
-                </div>
+        <h2>Quiz:</h2>
+        <quiz-builder></quiz-builder>
 
-                <div>
-                    <div>
-                        <h2>Question 1</h2>
-                        <div>
-                            <div class="d-flex flex-row gap-5 bg-danger text-white">
-                                <div>
-                                    <span>Type:</span>
-                                    <span id="q1-type">Checkbox</span>
-                                </div>
-                                <label for="q1-question">
-                                    <input id="q1-question" name="q1-question" type="text"
-                                        placeholder="Write question here" required>
-                                    <!-- required if exists-->
-                                </label>
+        <label for="assignment" class="d-flex flex-column">
+            Assignment
+            <textarea name="assignment" id="assignment" style="resize: none;"
+                placeholder="Put your markdown formatted assignment here"></textarea>
+        </label>
 
-
-                                <button role="button">X (Remove)</button>
-
-                            </div>
-                            <div>
-                                <div class="d-flex flex-row justify-content-between">
-                                    <h3>Possible Answers</h3>
-                                    <button>+ Add Answer</button>
-                                </div>
-                                <div>
-                                    <!-- a possible answer-->
-                                    <div class="d-flex flex-row justify-content-between">
-                                        <label for="q1-pa1-checkbox">
-                                            Answer 1
-                                            <input id="q1-pa1" name="q1-pa1" type="text"
-                                                placeholder="Write possible answer here" required>
-                                            <!-- required if exists-->
-                                        </label>
-                                        <label for="q1-pa1-is-answer">
-                                            Is answer?
-                                            <input type="radio" name="is-answer" value="1">
-                                        </label>
-                                        <button>- Remove answer</button>
-                                    </div>
-
-                                    <!-- another possible answer -->
-                                    <div class="d-flex flex-row justify-content-between">
-                                        <label for="q1-pa2-checkbox">
-                                            Answer 2
-                                            <input id="q1-pa2" name="q1-pa2" type="text"
-                                                placeholder="Write possible answer here" required>
-                                            <!-- required if exists-->
-                                        </label>
-                                        <label for="q1-pa2-is-answer">
-                                            Is answer?
-                                            <input type="radio" name="is-answer" value="2">
-                                        </label>
-                                        <button>- Remove answer</button>
-                                    </div>
-                                </div>
-                            </div>
-                            <div>
-                                <!-- possible answers -->
-
-                            </div>
-                        </div>
-                    </div>
-                    <div>
-                        <h2>Question 2</h2>
-                        <!-- and so on and so forth -->
-                    </div>
-                </div>
-            </div>
-
-            <label for="assignment" class="d-flex flex-column">
-                Assignment
-                <textarea name="assignment" id="assignment" style="resize: none;"
-                    placeholder="Put your markdown formatted assignment here"></textarea>
-
-            </label>
-
-            <input type="submit" value="Upload!">
+        <input type="submit" value="Upload!">
     </form>
 
     <script type="module" src="/src/app.js"></script>
-    <script type="module" src="/src/add-creator-content.js"></script>
+
+    <script type="module" src="/src/quiz-builder.js"></script>
+    <script type="module" src="/src/tag-picker.js"></script>
+    <script type="module" src="/src/send-video.js"></script>
+
 </body>
 
 </html>
