@@ -1,3 +1,6 @@
+import { db } from '/src/firebaseConfig.js';
+import { collection, getDocs } from 'firebase/firestore';
+
 // Video element that can be scrolled
 // with mwheeldown/mwheelup or touch
 // events over 100px long
@@ -8,6 +11,7 @@ class ScrollableVideoManager extends HTMLElement {
     #page;
     #width;
     #height;
+    #loadError;
 
     constructor(width = 400, height = 800) {
         super();
@@ -17,6 +21,7 @@ class ScrollableVideoManager extends HTMLElement {
 
         this.#width = width;
         this.#height = height;
+        this.#loadError = '';
 
         this.#queue = [];
     }
@@ -24,64 +29,26 @@ class ScrollableVideoManager extends HTMLElement {
 
     async loadQueueByPage() {
         try {
-            // ... use fetch API to fetch video urls
-            // to create the queue
+            const videosSnapshot = await getDocs(collection(db, 'videos'));
+            this.#loadError = '';
 
-            /*
-            const response = await fetch('https://www..com', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    page: this.#page
-                }),
-                credentials: 'include',
+            return videosSnapshot.docs.map((videoDocument) => {
+                const video = videoDocument.data();
+
+                return {
+                    // Firestore's real document ID is required by the like button.
+                    id: videoDocument.id,
+                    url: video.video_url || video.url || '',
+                    creatorName: video.username || 'Unknown creator',
+                    creatorId: video.user_id || '',
+                    title: video.title || 'Untitled video',
+                    description: video.description || '',
+                };
             });
-
-            if (response.status != 200) {
-                // error on server
-            }
-
-            const data = await response.json();
-
-            if (!data.status) {
-                // error in query
-            }
-
-            return data.videoQueue;
-            */
-
-            return [
-                {
-                    id: 0,
-                    url: '/videos/0.webm',
-                    creatorName: 'user0',
-                    creatorId: 0,
-                    title: 'this is the title',
-                    description: 'this is the description'
-                },
-                {
-                    id: 1,
-                    url: '/videos/1.webm',
-                    creatorName: 'user1',
-                    creatorId: 1,
-                    title: 'this is the title',
-                    description: 'this is the description'
-                },
-                {
-                    id: 2,
-                    url: '/videos/2.webm',
-                    creatorName: 'user2',
-                    creatorId: 2,
-                    title: 'this is the title',
-                    description: 'this is the description'
-                },
-            ]
         } catch (error) {
-            // don't console.error(error);
-
-            /* handle the error */
+            console.error('Could not load videos from Firestore:', error);
+            this.#loadError = 'Videos could not be loaded. Check your Firestore permissions and try again.';
+            return [];
         } finally {
             console.log('request complete')
         }
@@ -156,6 +123,15 @@ class ScrollableVideoManager extends HTMLElement {
         if (this.#queue.length == 0 || this.#queue.length - 1 == this.#queuePosition) {
             this.#queue = await this.loadQueueByPage(this.#page)
             this.#page++;
+        }
+
+        if (this.#queue.length === 0) {
+            this.innerHTML = `
+                <div class="alert alert-warning m-3" role="alert">
+                    ${this.#loadError || 'No videos have been uploaded yet.'}
+                </div>
+            `;
+            return;
         }
 
         const currentVideoInfo = this.#queue[this.#queuePosition];

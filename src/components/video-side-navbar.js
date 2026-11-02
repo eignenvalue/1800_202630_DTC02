@@ -1,6 +1,16 @@
+import { auth, db } from '/src/firebaseConfig.js';
+import { onAuthStateChanged } from 'firebase/auth';
+import { doc, getDoc, runTransaction } from 'firebase/firestore';
+
 class VideoSideNavbar extends HTMLElement {
     constructor() {
         super();
+        this.user = null;
+        this.isLiked = false;
+        this.likeCount = 0;
+        this.isLoading = true;
+        this.unsubscribeFromAuth = null;
+        this.handleNavAction = this.handleNavAction.bind(this);
     }
 
     static get observedAttributes() {
@@ -8,27 +18,115 @@ class VideoSideNavbar extends HTMLElement {
     }
 
     get videoId() {
-        return this.getAttribute('videoId');
+        return this.getAttribute('video-id');
     }
 
     set videoId(value) {
-        this.setAttribute('videoId', value);
+        this.setAttribute('video-id', value);
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
         // Only re-render after the element is in the DOM
         if (oldValue !== newValue && this.isConnected) {
+            this.loadLikeState();
+        }
+    }
+
+    async loadLikeState() {
+        if (!this.videoId) return;
+
+        this.isLoading = true;
+        this.render();
+
+        try {
+            const videoSnapshot = await getDoc(doc(db, 'videos', this.videoId));
+
+            if (!videoSnapshot.exists()) {
+                throw new Error(`Video ${this.videoId} does not exist in Firestore.`);
+            }
+
+            const video = videoSnapshot.data();
+            const likedBy = Array.isArray(video.liked_by) ? video.liked_by : [];
+            this.isLiked = Boolean(this.user && likedBy.includes(this.user.uid));
+            this.likeCount = Number.isInteger(video.like_count)
+                ? video.like_count
+                : likedBy.length;
+        } catch (error) {
+            console.error('Could not load the video like state:', error);
+            this.isLiked = false;
+            this.likeCount = 0;
+        } finally {
+            this.isLoading = false;
+            this.render();
+        }
+    }
+
+    async handleNavAction(event) {
+        if (event.detail.action !== 'like' || this.isLoading) return;
+
+        event.preventDefault();
+
+        if (!this.user) {
+            window.alert('Please sign in to like videos.');
+            return;
+        }
+
+        this.isLoading = true;
+        this.render();
+
+        try {
+            const videoRef = doc(db, 'videos', this.videoId);
+            const result = await runTransaction(db, async (transaction) => {
+                const videoSnapshot = await transaction.get(videoRef);
+
+                if (!videoSnapshot.exists()) {
+                    throw new Error('This video no longer exists.');
+                }
+
+                const video = videoSnapshot.data();
+                const likedBy = Array.isArray(video.liked_by) ? video.liked_by : [];
+                const wasLiked = likedBy.includes(this.user.uid);
+                const updatedLikedBy = wasLiked
+                    ? likedBy.filter((userId) => userId !== this.user.uid)
+                    : [...likedBy, this.user.uid];
+
+                transaction.update(videoRef, {
+                    liked_by: updatedLikedBy,
+                    like_count: updatedLikedBy.length,
+                });
+
+                return {
+                    isLiked: !wasLiked,
+                    likeCount: updatedLikedBy.length,
+                };
+            });
+
+            // Only update the UI after Firestore confirms the write.
+            this.isLiked = result.isLiked;
+            this.likeCount = result.likeCount;
+        } catch (error) {
+            console.error('Could not update the video like:', error);
+            window.alert('Your like could not be saved. Please try again.');
+        } finally {
+            this.isLoading = false;
             this.render();
         }
     }
 
     render() {
-        const id = encodeURIComponent(this.videoId);
+        const id = encodeURIComponent(this.videoId || '');
 
         this.innerHTML = `
             <nav>
-                <ul class="list-unstyled d-inline-block">
-                    <video-side-navbar-anchor label="Like" icon="bi-heart" url="#"></video-side-navbar-anchor>
+                <ul class="list-unstyled d-inline-block mb-0">
+                    <video-side-navbar-anchor
+                        label="Like"
+                        icon="${this.isLiked ? 'bi-heart-fill' : 'bi-heart'}"
+                        action="like"
+                        count="${this.likeCount}"
+                        ${this.isLiked ? 'active' : ''}
+                        ${this.isLoading ? 'disabled' : ''}
+                    ></video-side-navbar-anchor>
                     <video-side-navbar-anchor label="Share" icon="bi-share" url="#"></video-side-navbar-anchor>
                     <video-side-navbar-anchor label="Assignment" icon="bi-envelope" url="/assignment.html?id=${id}"></video-side-navbar-anchor>
                     <video-side-navbar-anchor label="Quiz" icon="bi-question" url="/quiz.html?id=${id}"></video-side-navbar-anchor>
@@ -38,7 +136,18 @@ class VideoSideNavbar extends HTMLElement {
     }
 
     connectedCallback() {
+        this.addEventListener('video-nav-action', this.handleNavAction);
         this.render();
+
+        this.unsubscribeFromAuth = onAuthStateChanged(auth, (user) => {
+            this.user = user;
+            this.loadLikeState();
+        });
+    }
+
+    disconnectedCallback() {
+        this.removeEventListener('video-nav-action', this.handleNavAction);
+        this.unsubscribeFromAuth?.();
     }
 }
 
