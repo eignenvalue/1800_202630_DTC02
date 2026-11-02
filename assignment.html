@@ -11,7 +11,20 @@
     <!-- Web Components for shared navbar and footer layout -->
     <script type="module" src="/src/components/site-navbar.js"></script>
     <script type="module" src="/src/components/site-footer.js"></script>
-    <script type="module" src="/src/components/assignment.js"></script>
+    <style>
+      .popup {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        width: 100vw;
+        overflow-y: scroll;
+        background: white;
+        padding: 20px;
+        border: 1px solid black;
+        border-radius: 10px;
+      }
+    </style>
   </head>
 
   <body>
@@ -23,11 +36,13 @@
     <site-navbar></site-navbar>
     <back-button></back-button>
 
-
     <!-- Main content goes here -->
-    <div id="assignment-content">
-    </div>
-    <input class="btn btn-primary d-flex ms-auto me-auto " type="submit" value="Submit">
+    <div id="assignment-content"></div>
+    <input
+      class="btn btn-primary d-flex ms-auto me-auto"
+      type="submit"
+      value="Submit"
+    />
     <!-- our own footer goes here -->
     <site-footer></site-footer>
 
@@ -38,5 +53,24 @@
     <script type="module" src="/src/app.js"></script>
     <script type="module" src="/src/main.js"></script>
     <script src="src/components/back-button.js"></script>
+    <script type="module">
+      import { Assignment } from "/src/components/assignment.js";
+
+      const text = `
+      # Assignment Questions
+      ---
+      **Instructions:**
+
+      After watching the video, answer all of the questions below in full sentences. Type your answers in a document (for example, Word or Google Docs), then save or export it as a **PDF**. Include your name and the assignment title at the top of the document before submitting.
+
+      1. What was the main topic of this video?
+      2. List three key points the video covered.
+      3. What is one new term or idea you learned, and what does it mean?
+      `;
+
+      const box = new Assignment(text);
+      document.body.appendChild(box);
+      box.show();
+    </script>
   </body>
 </html>

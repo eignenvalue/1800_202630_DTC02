@@ -53,6 +53,18 @@ export async function loginUser(email, password) {
 export async function signupUser(name, email, password) {
   const userCredential = await createUserWithEmailAndPassword(auth, email, password);
   await updateProfile(userCredential.user, { displayName: name });
+  const type = "user";
+  await setDoc(doc(db, "users", userCredential.user.uid), {
+    name: name,
+    email: email,
+    type,
+    bio: "",
+    followed_by: [],
+    follow_count: 0,
+    following: [],
+    following_count: 0,
+    completed_quizzes:[]
+  });
   return userCredential.user;
 }
 
