@@ -35,7 +35,7 @@ const firebaseConfig = {
 // Initialize the Firebase app instance.
 // This sets up the Firebase connection for your web app.
 // ---------------------------------------------------------
-const app = initializeApp(firebaseConfig);
+export const app = initializeApp(firebaseConfig);
 
 // ---------------------------------------------------------
 // Create and export the Firebase Authentication service.

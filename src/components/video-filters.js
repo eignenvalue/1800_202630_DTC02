@@ -1,5 +1,4 @@
 class VideoFilters extends HTMLElement {
-    #left;
     #filters;
 
     constructor() {
@@ -15,6 +14,16 @@ class VideoFilters extends HTMLElement {
         this.#filters = ['Science', 'Math', 'Art', 'Technology', 'Graphic Design', 'Programming', 'Engineering']
     }
 
+    static get observedAttributes() {
+        return ['videoElementWidth'];
+    }
+
+    attributeChangedCallback(name, oldValue, newValue) {
+        if (oldValue !== newValue) {
+            this.render();
+        }
+    }
+
     initDrag(event) {
         this.dragging = true;
         this.startDragging = event.clientX - this.currentOffset;
@@ -24,8 +33,10 @@ class VideoFilters extends HTMLElement {
     isDragging(event) {
         if (!this.dragging) return;
 
-        const minimum = 0;
-        const maximum = -(event.target.offsetWidth) + this.offsetWidth;
+        let listWidth = this.querySelector('ul').clientWidth;
+        const minimum = 10;
+        const maximum = -(listWidth - Number(this.videoElementWidth))
+
         let lval = -(this.startDragging - event.clientX);
 
         if (lval > minimum) {
@@ -41,6 +52,10 @@ class VideoFilters extends HTMLElement {
         this.parentElement.style.left = `${lval}px`;
     }
 
+    get videoElementWidth() {
+        return this.getAttribute('videoElementWidth');
+    }
+
     stopDragging(event) {
         this.dragging = false;
     }
@@ -48,6 +63,7 @@ class VideoFilters extends HTMLElement {
     render() {
 
         let parent = document.createElement('ul');
+        parent.id = 'scrollableVideoFilters';
         parent.classList.add('width-max-content', 'd-flex', 'flex-row', 'list-unstyled', 'm-0', 'p-0');
 
         for (let i = 0; i < this.#filters.length; i++) {
@@ -61,6 +77,7 @@ class VideoFilters extends HTMLElement {
             parent.appendChild(li);
         }
 
+        this.replaceChildren()
         this.append(parent);
 
         parent.addEventListener('pointerdown', this.initDrag.bind(this));

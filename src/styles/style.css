@@ -6,6 +6,10 @@
     height: max-content;
 }
 
+#scrollableVideoFilters {
+    touch-action: pan-y;
+}
+
 details>summary {
     list-style: none;
 }
@@ -26,7 +30,7 @@ details>summary {
     font-weight: bold;
 }
 
-#assignment-content p > strong {
+#assignment-content p>strong {
     font-size: 25px;
 }
 
@@ -40,7 +44,7 @@ details>summary {
     padding-bottom: 1rem;
 }
 
-#assignment-content h3{
+#assignment-content h3 {
     margin-top: 20px;
     font-size: 1.4rem;
     margin-top: 1.5rem;
@@ -80,6 +84,7 @@ details>summary {
     margin-bottom: 0.5rem;
     line-height: 1.5;
 }
+
 .bottom-navbar {
     padding-bottom: env(safe-area-inset-bottom, 0px);
 }

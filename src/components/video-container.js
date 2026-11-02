@@ -3,6 +3,16 @@
 // events over 100px long
 class VideoContainer extends HTMLElement {
 
+    #width;
+    #height;
+
+    constructor(width = 400, height = 800) {
+        super();
+
+        this.#width = width;
+        this.#height = height;
+    }
+
     static get observedAttributes() {
         return ['id', 'url', 'creatorName', 'creatorId', 'title', 'description'];
     }
@@ -43,16 +53,15 @@ class VideoContainer extends HTMLElement {
         this.innerHTML = `
             <div class="overflow-hidden position-relative height-max-content width-max-content">
                 
-                <video-element url="${this.url}"></video-element>
+                <video-element 
+                    width="${this.#width}"
+                    height="${this.#height}"
+                    url="${this.url}"
+                ></video-element>
 
-                <div class="position-absolute w-100" style="top: 20px; left: 0;">
-                    <video-filters></video-filters>
-                </div>
-            
                 <div class="position-absolute" style="bottom: 30px; right: 0;">
                     <video-side-navbar videoId="${this.id}"></video-side-navbar>
                 </div>
-                
 
                 <div class="position-absolute" style="bottom: 0; left: 0;">
                     <!-- move into component -->
