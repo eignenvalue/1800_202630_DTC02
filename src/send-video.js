@@ -14,6 +14,11 @@ const form = document.getElementById('uploadForm');
 async function sendDataToServer(event) {
     event.preventDefault();
 
+    // should check the user type == "creator" after 
+    // checking auth.
+    // where "creator" is a protected attribute value
+    // that only certain accounts are granted 
+    // (creator accounts)
     const user = auth.currentUser;
     if (!user) {
         alert('Please sign in before uploading.');

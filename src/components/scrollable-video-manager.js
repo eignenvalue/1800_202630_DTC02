@@ -1,6 +1,17 @@
 // Video element that can be scrolled
 // with mwheeldown/mwheelup or touch
 // events over 100px long
+
+import { app } from '/src/firebaseConfig.js';
+import { getFirestore } from 'firebase/firestore';
+const db = getFirestore(app);
+
+import {
+    doc, collection, getDoc, getDocs,
+    onSnapshot, setDoc, addDoc, updateDoc,
+    deleteDoc, deleteField
+} from "firebase/firestore";
+
 class ScrollableVideoManager extends HTMLElement {
 
     #queue;
@@ -9,11 +20,14 @@ class ScrollableVideoManager extends HTMLElement {
     #width;
     #height;
 
+    // Firebase related variables
+    #collection;
+
     constructor(width = 400, height = 800) {
         super();
         this.#queue = [] // use set so no repeat urls
-        this.#queuePosition = 0
-        this.#page = 0
+        this.#queuePosition = 0;
+        this.#page = 0;
 
         this.#width = width;
         this.#height = height;
@@ -21,41 +35,20 @@ class ScrollableVideoManager extends HTMLElement {
         this.#queue = [];
     }
 
-
     async loadQueueByPage() {
         try {
             // ... use fetch API to fetch video urls
             // to create the queue
+            // this.#page
 
-            /*
-            const response = await fetch('https://www..com', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    page: this.#page
-                }),
-                credentials: 'include',
-            });
+            // const data = getDoc(usersRef, );
 
-            if (response.status != 200) {
-                // error on server
-            }
-
-            const data = await response.json();
-
-            if (!data.status) {
-                // error in query
-            }
-
-            return data.videoQueue;
-            */
+            // return data;
 
             return [
                 {
                     id: 0,
-                    url: '/videos/0.webm',
+                    url: '5.webm',
                     creatorName: 'user0',
                     creatorId: 0,
                     title: 'this is the title',
@@ -63,9 +56,9 @@ class ScrollableVideoManager extends HTMLElement {
                 },
                 {
                     id: 1,
-                    url: '/videos/1.webm',
-                    creatorName: 'user1',
-                    creatorId: 1,
+                    filename: '1.webm',
+                    username: 'user1',
+                    user_id: 1,
                     title: 'this is the title',
                     description: 'this is the description'
                 },
@@ -83,7 +76,7 @@ class ScrollableVideoManager extends HTMLElement {
 
             /* handle the error */
         } finally {
-            console.log('request complete')
+            console.log('request complete');
         }
     }
 
@@ -118,7 +111,6 @@ class ScrollableVideoManager extends HTMLElement {
     }
 
     #handleMWheelDown(event) {
-
 
     }
 
@@ -158,25 +150,26 @@ class ScrollableVideoManager extends HTMLElement {
             this.#page++;
         }
 
+        const pastVideoInfo = this.#queue[this.#queuePosition - 1] || {}
         const currentVideoInfo = this.#queue[this.#queuePosition];
 
         this.innerHTML = `
             <div class="position-relative width-max-content overflow-hidden">
             
-                <div class="position-absolute z-3" style="top: 20px; left: 10px;">
-                    <video-filters videoElementWidth="${this.#width}"></video-filters>
-                </div>
-
                 <video-container 
-                    id="${currentVideoInfo.id}"
-                    url="${currentVideoInfo.url}"
-                    creatorName="${currentVideoInfo.creatorName}"
-                    creatorId="${currentVideoInfo.creatorId}"
-                    title="${currentVideoInfo.title}"
-                    description="${currentVideoInfo.description}"
+                    id="${currentVideoInfo?.id || ""}"
+                    url="${currentVideoInfo?.url || ""}"
+                    creatorName="${currentVideoInfo.creatorName || ""}"
+                    creatorId="${currentVideoInfo.creatorId || ""}"
+                    title="${currentVideoInfo.title || ""}"
+                    description="${currentVideoInfo.description || ""}"
                     width="${this.#width}"
                     height="${this.#height}"
                 ></video-container>
+
+                <div class="position-absolute" style="top: 20px; left: 10px;">
+                    <video-filters videoElementWidth="${this.#width}"></video-filters>
+                </div>
             </div>
         `;
 

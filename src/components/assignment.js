@@ -12,4 +12,4 @@ After watching the video, answer all of the questions below in full sentences. T
 `;
 let output = marked.parse(markdownText);
 console.log(output)
-document.getElementById("assignment-content").innerHTML = output
+// document.getElementById("assignment-content").innerHTML = output

@@ -25,7 +25,11 @@ Add videos document for a video.
             question: 'What is 2 + 2?', // string
             possibleAnswers: [
                 1, 2, 3, 4
-            ] // list of integers
+            ], // list of integers
+            correctAnswers: [
+                3
+            ], // indexes of answers as int, answer (4) is index 3
+            type: "radio" // "radio" | "checkbox", your quiz class should know what to do with type "radio" vs type "checkbox"
         }, // object
         {
             ...
@@ -54,13 +58,11 @@ async function sendDataToServer(event) {
     });
 
     console.log(event);
-    /*
 
     const docRef = await addDoc(videosRef, {
         text: "Hello",
         sender: "Alice"
     }, { merge: true });
-    */
 
     console.log(docRef.id);
 }
