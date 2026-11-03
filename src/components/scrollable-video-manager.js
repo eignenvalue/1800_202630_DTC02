@@ -1,3 +1,6 @@
+import { db } from '/src/firebaseConfig.js';
+import { collection, getDocs } from 'firebase/firestore';
+
 // Video element that can be scrolled
 // with mwheeldown/mwheelup or touch
 // events over 100px long
@@ -19,6 +22,7 @@ class ScrollableVideoManager extends HTMLElement {
     #page;
     #width;
     #height;
+    #loadError;
 
     // Firebase related variables
     #collection;
@@ -31,6 +35,7 @@ class ScrollableVideoManager extends HTMLElement {
 
         this.#width = width;
         this.#height = height;
+        this.#loadError = '';
 
         this.#queue = [];
     }
@@ -45,7 +50,7 @@ class ScrollableVideoManager extends HTMLElement {
 
             // return data;
 
-            return [
+            let thing = [
                 {
                     id: 0,
                     url: '5.webm',
@@ -71,10 +76,27 @@ class ScrollableVideoManager extends HTMLElement {
                     description: 'this is the description'
                 },
             ]
-        } catch (error) {
-            // don't console.error(error);
+            
+            const videosSnapshot = await getDocs(collection(db, 'videos'));
+            this.#loadError = '';
 
-            /* handle the error */
+            return videosSnapshot.docs.map((videoDocument) => {
+                const video = videoDocument.data();
+
+                return {
+                    // Firestore's real document ID is required by the like button.
+                    id: videoDocument.id,
+                    url: video.video_url || video.url || '',
+                    creatorName: video.username || 'Unknown creator',
+                    creatorId: video.user_id || '',
+                    title: video.title || 'Untitled video',
+                    description: video.description || '',
+                };
+            });
+        } catch (error) {
+            console.error('Could not load videos from Firestore:', error);
+            this.#loadError = 'Videos could not be loaded. Check your Firestore permissions and try again.';
+            return [];
         } finally {
             console.log('request complete');
         }
@@ -151,6 +173,15 @@ class ScrollableVideoManager extends HTMLElement {
         }
 
         const pastVideoInfo = this.#queue[this.#queuePosition - 1] || {}
+        if (this.#queue.length === 0) {
+            this.innerHTML = `
+                <div class="alert alert-warning m-3" role="alert">
+                    ${this.#loadError || 'No videos have been uploaded yet.'}
+                </div>
+            `;
+            return;
+        }
+
         const currentVideoInfo = this.#queue[this.#queuePosition];
 
         this.innerHTML = `
