@@ -60,7 +60,7 @@ class VideoContainer extends HTMLElement {
                 ></video-element>
 
                 <div class="position-absolute" style="bottom: 30px; right: 0;">
-                    <video-side-navbar videoId="${this.id}"></video-side-navbar>
+                    <video-side-navbar video-id="${this.id}"></video-side-navbar>
                 </div>
 
                 <div class="position-absolute" style="bottom: 0; left: 0;">

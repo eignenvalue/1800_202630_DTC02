@@ -10,6 +10,26 @@
     touch-action: pan-y;
 }
 
+.video-nav-action {
+    width: 100%;
+}
+
+.video-nav-action:disabled {
+    cursor: wait;
+    opacity: 0.65;
+}
+
+.video-nav-action:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 3px;
+    border-radius: 0.25rem;
+}
+
+.video-nav-count {
+    font-size: 0.8rem;
+    line-height: 1;
+}
+
 details>summary {
     list-style: none;
 }
