@@ -1,25 +1,29 @@
 import { marked } from "marked";
 
-/*
-1. What was the main topic of this video?
-2. List three key points the video covered.
-3. What is one new term or idea you learned, and what does it mean?
-*/
-
 export class Assignment extends HTMLElement {
     constructor(text) {
         super();
         this.text = text;
     }
 
+    static get observedAttributes() {
+        return ['assignmentText'];
+    }
+
+    attributeChangedCallback(name, oldValue, newValue) {
+        if (oldValue !== newValue) {
+            this.render(); // not defined, change when ready
+        }
+    }
+
     connectedCallback() {
         const html = marked.parse(this.text.replace(/^\s+/gm, ""));
 
         this.innerHTML = `
-      <div class="popup">
-        <button class="close">X</button>
-        ${html}
-      </div>
+        <div class="popup">
+            <button class="close">X</button>
+            ${html}
+        </div>
     `;
 
         const closeButton = this.querySelector(".close");
