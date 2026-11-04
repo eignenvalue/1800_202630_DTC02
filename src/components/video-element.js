@@ -1,21 +1,6 @@
-
-class VideoElement extends HTMLElement {
-
+class ObservableElement extends HTMLElement {
     static get observedAttributes() {
-        return ['url'];
-    }
-
-    constructor() {
-        super();
-    }
-
-    render() {
-        this.innerHTML = `
-            <video width="400px" height="800px" class="bg-black" loop autoplay muted controls>
-                <source src="${this.url}" type="video/webm"/>
-                Video not available.
-            </video>
-        `;
+        return this.observedAttributes;
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
@@ -24,8 +9,51 @@ class VideoElement extends HTMLElement {
         }
     }
 
+    connectedCallback() {
+        this.render();
+    }
+}
+
+
+class VideoElement extends HTMLElement {
+
+    constructor() {
+        super();
+    }
+
+    static get observedAttributes() {
+        return ['url', 'width', 'height'];
+    }
+
+    attributeChangedCallback(name, oldValue, newValue) {
+        if (oldValue !== newValue) {
+            this.render();
+        }
+    }
+
+    get width() {
+        return this.getAttribute('width');
+    }
+
+    get height() {
+        return this.getAttribute('height');
+    }
+
     get url() {
         return this.getAttribute('url');
+    }
+
+    set url(value) {
+        this.setAttribute('url', value);
+    }
+
+    render() {
+        this.innerHTML = `
+            <video width="${this.width}px" height="${this.height}px" class="bg-black" loop autoplay muted controls>
+                <source src="/videos/${this.url}" type="video/webm"/>
+                Video not available.
+            </video>
+        `;
     }
 
     connectedCallback() {
