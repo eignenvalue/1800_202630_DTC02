@@ -1,62 +1,74 @@
-// Video element that can be scrolled
-// with mwheeldown/mwheelup or touch
-// events over 100px long
-class VideoContainer extends HTMLElement {
+import { QuizBuilder } from "../quiz-builder";
+import { Assignment } from "./assignment";
+
+export class VideoContainer extends HTMLElement {
 
     #width;
     #height;
+    #assignmentDOM;
+    #quizDOM;
+    #hide;
 
-    constructor(width = 400, height = 800) {
+    constructor({
+        assignment = "",
+        created_at = "",
+        description = "",
+        like_count = 0,
+        liked_by = 0,
+        quiz = [],
+        tags = [],
+        title = "",
+        user_id = "",
+        username = "",
+        video_url = "",
+    } = {}, width = 400, height = 800) {
         super();
 
         this.#width = width;
         this.#height = height;
+        this.#hide = false;
+
+        this.assignment = assignment;
+        this.createdAt = created_at;
+        this.description = description;
+        this.likeCount = like_count;
+        this.likedBy = liked_by;
+        this.quiz = quiz;
+        this.tags = tags;
+        this.title = title;
+        this.userId = user_id;
+        this.username = username;
+        this.video_url = video_url;
+
+        this.#assignmentDOM = new Assignment();
+        this.#quizDOM = new QuizBuilder();
     }
 
-    static get observedAttributes() {
-        return ['id', 'url', 'creatorName', 'creatorId', 'title', 'description'];
+    // Toggle display instead of re-rendering so the <video-element>
+    // keeps its state (loaded, playing, etc.)
+    hideVideo() {
+        this.#hide = true;
+        this.style.display = 'none';
     }
 
-    attributeChangedCallback(name, oldValue, newValue) {
-        if (oldValue !== newValue) {
-            this.render(); // not defined, change when ready
-        }
+    showVideo() {
+        this.#hide = false;
+        this.style.display = 'block';
     }
 
-    // write get s and it'll work :)
-    // then finish styling and add the fake filters
-    get id() {
-        return this.getAttribute('id');
-    }
-
-    get url() {
-        return this.getAttribute('url');
-    }
-
-    get creatorName() {
-        return this.getAttribute('creatorName');
-    }
-
-    get creatorId() {
-        return this.getAttribute('creatorId');
-    }
-
-    get title() {
-        return this.getAttribute('title');
-    }
-
-    get description() {
-        return this.getAttribute('description');
+    get isHidden() {
+        return this.#hide;
     }
 
     render() {
         this.innerHTML = `
-            <div class="overflow-hidden position-relative height-max-content width-max-content">
-                
-                <video-element 
+            <div class="overflow-hidden position-relative"
+                 style="width: ${this.#width}px; height: ${this.#height}px;">
+
+                <video-element
                     width="${this.#width}"
                     height="${this.#height}"
-                    url="${this.url}"
+                    url="${this.video_url}"
                 ></video-element>
 
                 <div class="position-absolute" style="bottom: 30px; right: 0;">
@@ -64,10 +76,9 @@ class VideoContainer extends HTMLElement {
                 </div>
 
                 <div class="position-absolute" style="bottom: 0; left: 0;">
-                    <!-- move into component -->
-                    <details class="text-white ">
+                    <details class="text-white">
                         <summary>
-                            <h2>${this.creatorName}<h2>
+                            <h2>${this.username}</h2>
                             <h3>${this.title}</h3>
                         </summary>
                         <p>${this.description}</p>
@@ -78,6 +89,12 @@ class VideoContainer extends HTMLElement {
     }
 
     connectedCallback() {
+        // each container is stacked on top of the others and moved with transform
+        this.style.position = 'absolute';
+        this.style.top = '0';
+        this.style.left = '0';
+        this.style.width = `${this.#width}px`;
+        this.style.height = `${this.#height}px`;
         this.render();
     }
 }
