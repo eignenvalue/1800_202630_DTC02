@@ -10,6 +10,7 @@ export class VideoContainer extends HTMLElement {
     #hide;
 
     constructor({
+        id = "",
         assignment = "",
         created_at = "",
         description = "",
@@ -28,6 +29,7 @@ export class VideoContainer extends HTMLElement {
         this.#height = height;
         this.#hide = false;
 
+        this.id = id;
         this.assignment = assignment;
         this.createdAt = created_at;
         this.description = description;
@@ -62,7 +64,7 @@ export class VideoContainer extends HTMLElement {
 
     render() {
         this.innerHTML = `
-            <div class="overflow-hidden position-relative"
+            <div
                  style="width: ${this.#width}px; height: ${this.#height}px;">
 
                 <video-element
