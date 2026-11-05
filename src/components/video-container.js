@@ -8,6 +8,7 @@ export class VideoContainer extends HTMLElement {
     #assignmentDOM;
     #quizDOM;
     #hide;
+    #active = false; // true while this is the current, playing video
 
     constructor({
         id = "",
@@ -62,6 +63,40 @@ export class VideoContainer extends HTMLElement {
         return this.#hide;
     }
 
+    // Finds the <video> inside <video-element> (light DOM or shadow DOM)
+    #findVideo() {
+        const el = this.querySelector('video-element');
+        return el?.querySelector('video') ?? el?.shadowRoot?.querySelector('video') ?? null;
+    }
+
+    // <video-element> may build its <video> a moment after it's attached,
+    // so retry for a few frames before giving up
+    #withVideo(action, tries = 10) {
+        const video = this.#findVideo();
+        if (video) return action(video);
+        if (tries > 0 && this.isConnected) {
+            requestAnimationFrame(() => this.#withVideo(action, tries - 1));
+        }
+    }
+
+    playVideo() {
+        this.#active = true;
+        this.#withVideo(video => {
+            if (!this.#active) return; // moved out of view while waiting
+            video.play().catch(error => console.warn('Could not autoplay video:', error));
+        });
+    }
+
+    // Pause and rewind so it starts from the beginning next time it's shown
+    stopVideo() {
+        this.#active = false;
+        this.#withVideo(video => {
+            if (this.#active) return; // became current again while waiting
+            video.pause();
+            video.currentTime = 0;
+        });
+    }
+
     render() {
         this.innerHTML = `
             <div
@@ -84,6 +119,9 @@ export class VideoContainer extends HTMLElement {
                             <h3>${this.title}</h3>
                         </summary>
                         <p>${this.description}</p>
+                        <ul class="list-unstyled d-flex flex-wrap gap-2 m-0">
+                            ${this.tags.map(tag => `<li class="border rounded px-2">${tag}</li>`).join('')}
+                        </ul>
                     </details>
                 </div>
             </div>
@@ -98,6 +136,11 @@ export class VideoContainer extends HTMLElement {
         this.style.width = `${this.#width}px`;
         this.style.height = `${this.#height}px`;
         this.render();
+    }
+
+    // Removed from the DOM (e.g. on filter change): detached videos can keep playing audio
+    disconnectedCallback() {
+        this.stopVideo();
     }
 }
 

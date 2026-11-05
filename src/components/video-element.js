@@ -49,7 +49,7 @@ class VideoElement extends HTMLElement {
 
     render() {
         this.innerHTML = `
-            <video width="${this.width}px" height="${this.height}px" class="bg-black" loop autoplay muted controls>
+            <video width="${this.width}px" height="${this.height}px" class="bg-black" loop autoplay muted>
                 <source src="/videos/${this.url}" type="video/webm"/>
                 Video not available.
             </video>

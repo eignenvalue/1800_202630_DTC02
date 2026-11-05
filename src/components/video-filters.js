@@ -43,7 +43,7 @@ class VideoFilters extends HTMLElement {
         if (!this.dragging) return;
 
         const listWidth = this.querySelector('ul').clientWidth;
-        const minimum = 10;
+        const minimum = 0;
         const maximum = -(listWidth - Number(this.videoElementWidth));
 
         let lval = -(this.startDragging - event.clientX);

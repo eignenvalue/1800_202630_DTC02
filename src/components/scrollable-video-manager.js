@@ -1,9 +1,11 @@
 import { db } from '/src/firebaseConfig.js';
 import {
-    collection, getDocs, query, where, limit, startAfter
+    collection, getDocs, query, where, limit, startAfter, doc, getDoc
 } from 'firebase/firestore';
 import { VideoContainer } from './video-container.js';
 import './video-filters.js'; // adjust the path/name to your file
+
+const VIDEO_PARAM = 'video'; // ?video=<id>  (not "id", which your assignment/quiz pages already use)
 
 class ScrollableVideoManager extends HTMLElement {
 
@@ -83,7 +85,33 @@ class ScrollableVideoManager extends HTMLElement {
         }
     }
 
-    async #reload() {
+    // Fetch one specific video by id; null if missing or unreadable
+    async #fetchVideoById(id) {
+        if (!id) return null;
+        try {
+            const snapshot = await getDoc(doc(db, 'videos', id));
+            return snapshot.exists() ? { id: snapshot.id, ...snapshot.data() } : null;
+        } catch (error) {
+            console.error('Could not load the linked video:', error);
+            return null;
+        }
+    }
+
+    // Mirror the current video into the address bar without adding history entries
+    #updateUrl() {
+        const id = this.#queue[this.#queuePosition]?.id;
+        const url = new URL(window.location.href);
+
+        if (id) {
+            url.searchParams.set(VIDEO_PARAM, id);
+        } else {
+            url.searchParams.delete(VIDEO_PARAM);
+        }
+
+        window.history.replaceState(window.history.state, '', url);
+    }
+
+    async #reload(pinnedId = null) {
         const requestId = ++this.#requestId;
 
         this.#queue = [];
@@ -91,11 +119,19 @@ class ScrollableVideoManager extends HTMLElement {
         this.#cursor = null;
         this.#hasMore = true;
 
-        const firstPage = await this.loadQueueByPage();
-        console.log(firstPage);
+        // fetch the linked video and the first page of the feed in parallel
+        const [pinned, firstPage] = await Promise.all([
+            this.#fetchVideoById(pinnedId),
+            this.loadQueueByPage(),
+        ]);
+
         if (requestId !== this.#requestId) return;
 
-        this.#queue = firstPage;
+        // linked video goes first; drop it from the feed so it isn't shown twice
+        this.#queue = pinned
+            ? [pinned, ...firstPage.filter(video => video.id !== pinned.id)]
+            : firstPage;
+
         this.render();
     }
 
@@ -108,7 +144,9 @@ class ScrollableVideoManager extends HTMLElement {
         this.#loadingMore = false;
         if (requestId !== this.#requestId) return;
 
-        this.#queue = [...this.#queue, ...nextPage];
+        // later pages can contain the linked video, so dedupe against the queue
+        const have = new Set(this.#queue.map(video => video.id));
+        this.#queue = [...this.#queue, ...nextPage.filter(video => !have.has(video.id))];
         this.#refreshNext();
     }
 
@@ -150,8 +188,13 @@ class ScrollableVideoManager extends HTMLElement {
 
     #settle() {
         this.#lastVideo.hideVideo();
+        this.#lastVideo.stopVideo();
         this.#nextVideo.hideVideo();
+        this.#nextVideo.stopVideo();
+
         this.#currentVideo.showVideo();
+        this.#currentVideo.playVideo();
+
         this.#layout(0);
     }
 
@@ -247,6 +290,7 @@ class ScrollableVideoManager extends HTMLElement {
         this.#nextVideo = this.#createVideo(this.#queue[this.#queuePosition + 1]);
         this.#stack.append(this.#nextVideo);
         this.#settle();
+        this.#updateUrl();
 
         if (this.#queue.length - 1 - this.#queuePosition <= 2) this.#loadMore();
     }
@@ -259,6 +303,7 @@ class ScrollableVideoManager extends HTMLElement {
         this.#lastVideo = this.#createVideo(this.#queue[this.#queuePosition - 1]);
         this.#stack.append(this.#lastVideo);
         this.#settle();
+        this.#updateUrl();
     }
 
     // ---------- rendering ----------
@@ -271,7 +316,7 @@ class ScrollableVideoManager extends HTMLElement {
         this.style.overflow = 'hidden';
 
         this.innerHTML = `
-            <div class="position-absolute" style="top: 10px; left: 0;">
+            <div class="position-absolute" style="top: 10px; left: 0px;">
                 <video-filters videoElementWidth="${this.#width}"></video-filters>
             </div>
 
@@ -306,6 +351,7 @@ class ScrollableVideoManager extends HTMLElement {
             alert.setAttribute('role', 'alert');
             alert.textContent = message;
             this.#stack.replaceChildren(alert);
+            this.#updateUrl(); // removes ?video= when there's nothing to show
             return;
         }
 
@@ -315,15 +361,18 @@ class ScrollableVideoManager extends HTMLElement {
 
         this.#stack.replaceChildren(this.#lastVideo, this.#currentVideo, this.#nextVideo);
         this.#settle();
+        this.#updateUrl();
     }
 
     connectedCallback() {
         if (!this.#stack) this.#buildShell();
 
-        // filters now live inside this element, and their event bubbles
+        // filters live inside this element, and their event bubbles
         this.addEventListener('video-filters-change', this.#onFiltersChange);
 
-        this.#reload();
+        // a ?video=<id> in the URL is fetched first and shown first
+        const linkedId = new URLSearchParams(window.location.search).get(VIDEO_PARAM);
+        this.#reload(linkedId);
     }
 
     disconnectedCallback() {
