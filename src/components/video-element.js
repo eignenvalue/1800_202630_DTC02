@@ -48,8 +48,16 @@ class VideoElement extends HTMLElement {
     }
 
     render() {
+        // fill whatever box the parent gives us
+        this.style.display = 'block';
+        this.style.width = '100%';
+        this.style.height = '100%';
+
+        // object-fit: contain shows the whole frame (black bars if the aspect
+        // ratio differs); playsinline is essential on iOS
         this.innerHTML = `
-            <video width="${this.width}px" height="${this.height}px" class="bg-black" loop autoplay muted controls>
+            <video class="bg-black" loop autoplay muted playsinline preload="auto"
+                   style="display: block; width: 100%; height: 100%; object-fit: contain;">
                 <source src="/videos/${this.url}" type="video/webm"/>
                 Video not available.
             </video>

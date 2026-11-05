@@ -33,7 +33,6 @@ class VideoSideNavbar extends HTMLElement {
     }
 
     async loadLikeState() {
-        console.log(this);
         if (!this.videoId) return;
 
         this.isLoading = true;
