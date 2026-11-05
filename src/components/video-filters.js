@@ -88,19 +88,20 @@ class VideoFilters extends HTMLElement {
     render() {
         const parent = document.createElement('ul');
         parent.id = 'scrollableVideoFilters';
-        parent.classList.add('width-max-content', 'd-flex', 'flex-row', 'list-unstyled');
+        parent.classList.add('width-max-content', 'd-flex', 'flex-row', 'm-0', 'gap-3', 'list-unstyled');
+        parent.style.paddingLeft = parent.style.paddingRight = '10px';
 
         for (const filter of this.#filters) {
             const li = document.createElement('li');
             const element = document.createElement('a');
             li.appendChild(element);
             element.role = 'button';
+            element.style.display = 'inline-block';
             element.dataset.filter = filter;
             element.setAttribute('aria-pressed', String(this.#selected.has(filter)));
             element.innerText = filter;
             element.classList.add('border', 'rounded', 'p-2', 'text-white', 'text-decoration-none', 'user-select-none');
             if (this.#selected.has(filter)) element.classList.add('bg-primary');
-            element.style.marginRight = '1rem';
             parent.appendChild(li);
         }
 

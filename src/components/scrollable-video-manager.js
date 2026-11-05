@@ -92,6 +92,7 @@ class ScrollableVideoManager extends HTMLElement {
         this.#hasMore = true;
 
         const firstPage = await this.loadQueueByPage();
+        console.log(firstPage);
         if (requestId !== this.#requestId) return;
 
         this.#queue = firstPage;
@@ -264,18 +265,18 @@ class ScrollableVideoManager extends HTMLElement {
 
     // Built once: filters on top, video stack below
     #buildShell() {
-        this.style.display = 'block';
+        this.style.display = 'flex';
         this.style.width = `${this.#width}px`;
+        this.style.position = 'relative';
+        this.style.overflow = 'hidden';
 
         this.innerHTML = `
-            <div class="position-absolute" style="width: ${this.#width}px; top: 20px; left: 10px;">
-                <div>
-                    <video-filters videoElementWidth="${this.#width}"></video-filters>
-                </div>        
+            <div class="position-absolute" style="top: 10px; left: 0;">
+                <video-filters videoElementWidth="${this.#width}"></video-filters>
             </div>
 
             <div data-video-stack
-                 style="position: relative; overflow: hidden; touch-action: none;
+                 style="overflow: hidden; touch-action: none;
                         width: ${this.#width}px; height: ${this.#height}px;"></div>
         `;
 
