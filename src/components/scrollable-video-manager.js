@@ -11,8 +11,7 @@ class ScrollableVideoManager extends HTMLElement {
 
     #queue = [];
     #queuePosition = 0;
-    #width;
-    #height;
+    #height = 800; // placeholder; replaced by the measured stack height
     #loadError = '';
 
     // query state
@@ -36,12 +35,28 @@ class ScrollableVideoManager extends HTMLElement {
     #threshold = 100;
     #animationMs = 250;
 
+    #resizeObserver = null;
+
     #onFiltersChange = (event) => this.setFilters(event.detail?.filters ?? []);
 
-    constructor(width = 400, height = 800) {
+    // desktop keyboard navigation
+    #onKey = (event) => {
+        if (this.#animating || this.#dragging || !this.#currentVideo) return;
+        if (event.target.closest?.('input, textarea, select, [contenteditable]')) return;
+
+        if (event.key === 'ArrowDown' && this.#hasNext) {
+            event.preventDefault();
+            this.#nextVideo.showVideo();
+            this.#commit(1);
+        } else if (event.key === 'ArrowUp' && this.#hasLast) {
+            event.preventDefault();
+            this.#lastVideo.showVideo();
+            this.#commit(-1);
+        }
+    };
+
+    constructor() {
         super();
-        this.#width = width;
-        this.#height = height;
     }
 
     // ---------- querying ----------
@@ -172,7 +187,17 @@ class ScrollableVideoManager extends HTMLElement {
     }
 
     #createVideo(info) {
-        return new VideoContainer(info ?? {}, this.#width, this.#height);
+        return new VideoContainer(info ?? {});
+    }
+
+    // Keep #height in sync with the real stack height (rotation, URL-bar
+    // collapse, window resize, navbar height change)
+    #measure() {
+        const height = this.#stack?.clientHeight;
+        if (!height || height === this.#height) return;
+        this.#height = height;
+        if (!this.#currentVideo) return;
+        if (!this.#dragging && !this.#animating) this.#layout(0);
     }
 
     #layout(offset = 0, animate = false) {
@@ -308,21 +333,29 @@ class ScrollableVideoManager extends HTMLElement {
 
     // ---------- rendering ----------
 
-    // Built once: filters on top, video stack below
+    // Built once: a centred column (phone-width cap on desktop) whose height is
+    // the viewport minus the bottom navbar. Filters on top, video stack below.
     #buildShell() {
         this.style.display = 'flex';
-        this.style.width = `${this.#width}px`;
-        this.style.position = 'relative';
-        this.style.overflow = 'hidden';
+        this.style.justifyContent = 'center';
+        this.style.width = '100%';
+        this.style.background = '#000';
 
         this.innerHTML = `
-            <div class="position-absolute" style="top: 10px; left: 0px;">
-                <video-filters videoElementWidth="${this.#width}"></video-filters>
-            </div>
+            <div class="position-relative w-100"
+                 style="max-width: 480px;
+                        height: calc(100vh - var(--bottom-nav-height, 64px));
+                        height: calc(100dvh - var(--bottom-nav-height, 64px));">
 
-            <div data-video-stack
-                 style="overflow: hidden; touch-action: none;
-                        width: ${this.#width}px; height: ${this.#height}px;"></div>
+                <div class="position-absolute start-0 end-0"
+                     style="top: 0; z-index: 10;
+                            padding-top: calc(env(safe-area-inset-top, 0px) + 10px);">
+                    <video-filters videoElementWidth="100%"></video-filters>
+                </div>
+
+                <div data-video-stack class="position-relative w-100 h-100"
+                     style="overflow: hidden; touch-action: none;"></div>
+            </div>
         `;
 
         this.#stack = this.querySelector('[data-video-stack]');
@@ -360,6 +393,7 @@ class ScrollableVideoManager extends HTMLElement {
         this.#nextVideo = this.#createVideo(this.#queue[this.#queuePosition + 1]);
 
         this.#stack.replaceChildren(this.#lastVideo, this.#currentVideo, this.#nextVideo);
+        this.#measure();
         this.#settle();
         this.#updateUrl();
     }
@@ -369,6 +403,11 @@ class ScrollableVideoManager extends HTMLElement {
 
         // filters live inside this element, and their event bubbles
         this.addEventListener('video-filters-change', this.#onFiltersChange);
+        window.addEventListener('keydown', this.#onKey);
+
+        this.#resizeObserver = new ResizeObserver(() => this.#measure());
+        this.#resizeObserver.observe(this.#stack);
+        this.#measure();
 
         // a ?video=<id> in the URL is fetched first and shown first
         const linkedId = new URLSearchParams(window.location.search).get(VIDEO_PARAM);
@@ -377,6 +416,8 @@ class ScrollableVideoManager extends HTMLElement {
 
     disconnectedCallback() {
         this.removeEventListener('video-filters-change', this.#onFiltersChange);
+        window.removeEventListener('keydown', this.#onKey);
+        this.#resizeObserver?.disconnect();
     }
 }
 

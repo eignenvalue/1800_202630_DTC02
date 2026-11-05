@@ -2,71 +2,24 @@ class VideoFilters extends HTMLElement {
     #filters;
     #selected = new Set();
 
+    // mouse drag-to-scroll state
+    #dragStartX = 0;
+    #dragStartScroll = 0;
+    #pointerIsDown = false;
+    #didDrag = false;
+
     constructor() {
         super();
 
-        this.startDragging = 0;
-        this.currentOffset = 0;
-        this.downX = 0;
-        this.dragging = false;
-
         // must match the strings stored in each video's `tags` array
         this.#filters = ['Science', 'Math', 'Art', 'Technology', 'Graphic Design', 'Programming', 'Engineering'];
-    }
-
-    static get observedAttributes() {
-        return ['videoElementWidth'];
-    }
-
-    attributeChangedCallback(name, oldValue, newValue) {
-        if (oldValue !== newValue) {
-            this.render();
-        }
-    }
-
-    get videoElementWidth() {
-        return this.getAttribute('videoElementWidth');
     }
 
     get selectedFilters() {
         return [...this.#selected];
     }
 
-    initDrag(event) {
-        this.dragging = true;
-        this.downX = event.clientX;
-        this.startDragging = event.clientX - this.currentOffset;
-        event.currentTarget.setPointerCapture(event.pointerId);
-    }
-
-    isDragging(event) {
-        if (!this.dragging) return;
-
-        const listWidth = this.querySelector('ul').clientWidth;
-        const minimum = 0;
-        const maximum = -(listWidth - Number(this.videoElementWidth));
-
-        let lval = -(this.startDragging - event.clientX);
-        if (lval > minimum) lval = minimum;
-        if (lval < maximum) lval = maximum;
-
-        this.currentOffset = lval;
-        this.parentElement.style.left = `${lval}px`;
-    }
-
-    stopDragging(event) {
-        if (!this.dragging) return;
-        this.dragging = false;
-
-        // barely moved = a tap, not a drag. Pointer capture retargets the
-        // click to the <ul>, so find the chip under the pointer ourselves.
-        if (event.type === 'pointerup' && Math.abs(event.clientX - this.downX) < 5) {
-            const chip = document.elementFromPoint(event.clientX, event.clientY)?.closest('a[data-filter]');
-            if (chip) this.toggleFilter(chip);
-        }
-    }
-
-    toggleFilter(chip) {
+    #toggleFilter(chip) {
         const name = chip.dataset.filter;
 
         if (this.#selected.has(name)) {
@@ -75,8 +28,10 @@ class VideoFilters extends HTMLElement {
             this.#selected.add(name);
         }
 
-        chip.classList.toggle('bg-primary', this.#selected.has(name));
-        chip.setAttribute('aria-pressed', String(this.#selected.has(name)));
+        const isOn = this.#selected.has(name);
+        chip.classList.toggle('bg-primary', isOn);
+        chip.classList.toggle('video-filter-off', !isOn);
+        chip.setAttribute('aria-pressed', String(isOn));
 
         this.dispatchEvent(new CustomEvent('video-filters-change', {
             detail: { filters: this.selectedFilters },
@@ -86,43 +41,97 @@ class VideoFilters extends HTMLElement {
     }
 
     render() {
-        const parent = document.createElement('ul');
-        parent.id = 'scrollableVideoFilters';
-        parent.classList.add('width-max-content', 'd-flex', 'flex-row', 'm-0', 'gap-3', 'list-unstyled');
-        parent.style.paddingLeft = parent.style.paddingRight = '10px';
+        this.style.display = 'block';
+
+        const style = document.createElement('style');
+        style.textContent = `
+            video-filters .video-filters-scroller {
+                overflow-x: auto;
+                overflow-y: hidden;
+                scrollbar-width: none;              /* Firefox */
+                -webkit-overflow-scrolling: touch;
+                touch-action: pan-x;                /* horizontal swipes scroll the chips */
+                padding: 0 10px;
+            }
+            video-filters .video-filters-scroller::-webkit-scrollbar { display: none; }
+            video-filters .video-filter-off { background: rgba(0, 0, 0, .45); }
+            video-filters .video-filters-scroller.dragging { cursor: grabbing; }
+        `;
+
+        const scroller = document.createElement('div');
+        scroller.className = 'video-filters-scroller';
+
+        const list = document.createElement('ul');
+        list.className = 'd-flex flex-row flex-nowrap m-0 p-0 gap-2 list-unstyled';
+        list.style.width = 'max-content';
 
         for (const filter of this.#filters) {
+            const isOn = this.#selected.has(filter);
+
             const li = document.createElement('li');
-            const element = document.createElement('a');
-            li.appendChild(element);
-            element.role = 'button';
-            element.style.display = 'inline-block';
-            element.dataset.filter = filter;
-            element.setAttribute('aria-pressed', String(this.#selected.has(filter)));
-            element.innerText = filter;
-            element.classList.add('border', 'rounded', 'p-2', 'text-white', 'text-decoration-none', 'user-select-none');
-            if (this.#selected.has(filter)) element.classList.add('bg-primary');
-            parent.appendChild(li);
+            const chip = document.createElement('button');
+            chip.type = 'button';
+            chip.dataset.filter = filter;
+            chip.textContent = filter;
+            chip.setAttribute('aria-pressed', String(isOn));
+            chip.className = 'border rounded px-3 py-2 text-white user-select-none text-nowrap '
+                + (isOn ? 'bg-primary' : 'video-filter-off');
+
+            li.appendChild(chip);
+            list.appendChild(li);
         }
 
-        this.replaceChildren(parent);
+        scroller.appendChild(list);
+        this.replaceChildren(style, scroller);
 
-        parent.addEventListener('pointerdown', this.initDrag.bind(this));
-        parent.addEventListener('pointermove', this.isDragging.bind(this));
-        parent.addEventListener('pointerup', this.stopDragging.bind(this));
-        parent.addEventListener('pointercancel', this.stopDragging.bind(this));
+        // taps and clicks
+        scroller.addEventListener('click', (event) => {
+            if (this.#didDrag) return; // that was a drag, not a click
+            const chip = event.target.closest('button[data-filter]');
+            if (chip) this.#toggleFilter(chip);
+        });
+
+        // mouse drag-to-scroll (touch already scrolls natively)
+        scroller.addEventListener('pointerdown', (event) => {
+            if (event.pointerType !== 'mouse') return;
+            this.#pointerIsDown = true;
+            this.#didDrag = false;
+            this.#dragStartX = event.clientX;
+            this.#dragStartScroll = scroller.scrollLeft;
+        });
+
+        scroller.addEventListener('pointermove', (event) => {
+            if (!this.#pointerIsDown) return;
+            const dx = event.clientX - this.#dragStartX;
+
+            if (!this.#didDrag && Math.abs(dx) > 5) {
+                this.#didDrag = true;
+                scroller.classList.add('dragging');
+                scroller.setPointerCapture(event.pointerId);
+            }
+            if (this.#didDrag) scroller.scrollLeft = this.#dragStartScroll - dx;
+        });
+
+        const endDrag = () => {
+            if (!this.#pointerIsDown) return;
+            this.#pointerIsDown = false;
+            scroller.classList.remove('dragging');
+            // let the click event that follows a drag be ignored, then reset
+            setTimeout(() => { this.#didDrag = false; }, 0);
+        };
+        scroller.addEventListener('pointerup', endDrag);
+        scroller.addEventListener('pointercancel', endDrag);
+
+        // vertical mouse wheel scrolls the chips sideways
+        scroller.addEventListener('wheel', (event) => {
+            if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
+            event.preventDefault();
+            scroller.scrollLeft += event.deltaY;
+        }, { passive: false });
     }
 
     connectedCallback() {
         this.render();
-
-        const wrapper = this.parentElement;
-        if (wrapper) {
-            if (getComputedStyle(wrapper).position === 'static') {
-                wrapper.style.position = 'relative';
-            }
-            wrapper.style.zIndex = '10';
-        }
     }
 }
 

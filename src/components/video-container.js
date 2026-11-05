@@ -1,10 +1,16 @@
 import { QuizBuilder } from "../quiz-builder";
 import { Assignment } from "./assignment";
 
+// Escape user-supplied text before it goes into innerHTML
+const escapeHtml = (value) => String(value ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
+
 export class VideoContainer extends HTMLElement {
 
-    #width;
-    #height;
     #assignmentDOM;
     #quizDOM;
     #hide;
@@ -23,11 +29,9 @@ export class VideoContainer extends HTMLElement {
         user_id = "",
         username = "",
         video_url = "",
-    } = {}, width = 400, height = 800) {
+    } = {}) {
         super();
 
-        this.#width = width;
-        this.#height = height;
         this.#hide = false;
 
         this.id = id;
@@ -99,29 +103,30 @@ export class VideoContainer extends HTMLElement {
 
     render() {
         this.innerHTML = `
-            <div
-                 style="width: ${this.#width}px; height: ${this.#height}px;">
+            <div class="position-relative w-100 h-100 overflow-hidden">
 
-                <video-element
-                    width="${this.#width}"
-                    height="${this.#height}"
-                    url="${this.video_url}"
-                ></video-element>
+                <video-element url="${escapeHtml(this.video_url)}"></video-element>
 
-                <div class="position-absolute" style="bottom: 30px; right: 0;">
-                    <video-side-navbar video-id="${this.id}"></video-side-navbar>
+                <div class="position-absolute"
+                     style="bottom: 1rem; right: 0.5rem; z-index: 2;">
+                    <video-side-navbar video-id="${escapeHtml(this.id)}"></video-side-navbar>
                 </div>
 
-                <div class="position-absolute" style="bottom: 0; left: 0;">
-                    <details class="text-white">
-                        <summary>
-                            <h2>${this.username}</h2>
-                            <h3>${this.title}</h3>
+                <div class="position-absolute bottom-0 start-0 end-0 text-white"
+                     style="z-index: 1; padding: 3rem 4.5rem 1rem 1rem;
+                            background: linear-gradient(to top, rgba(0,0,0,.65), transparent);
+                            text-shadow: 0 1px 3px rgba(0,0,0,.6);">
+                    <details>
+                        <summary style="list-style-position: inside;">
+                            <h2 class="fs-6 fw-bold d-inline">${escapeHtml(this.username)}</h2>
+                            <h3 class="fs-6 fw-normal m-0">${escapeHtml(this.title)}</h3>
                         </summary>
-                        <p>${this.description}</p>
-                        <ul class="list-unstyled d-flex flex-wrap gap-2 m-0">
-                            ${this.tags.map(tag => `<li class="border rounded px-2">${tag}</li>`).join('')}
-                        </ul>
+                        <div style="max-height: 30vh; overflow-y: auto;">
+                            <p class="small mb-2">${escapeHtml(this.description)}</p>
+                            <ul class="list-unstyled d-flex flex-wrap gap-2 m-0 small">
+                                ${this.tags.map(tag => `<li class="border rounded px-2">${escapeHtml(tag)}</li>`).join('')}
+                            </ul>
+                        </div>
                     </details>
                 </div>
             </div>
@@ -129,12 +134,10 @@ export class VideoContainer extends HTMLElement {
     }
 
     connectedCallback() {
-        // each container is stacked on top of the others and moved with transform
+        // each container is stacked on top of the others, fills the stack,
+        // and is moved with transform
         this.style.position = 'absolute';
-        this.style.top = '0';
-        this.style.left = '0';
-        this.style.width = `${this.#width}px`;
-        this.style.height = `${this.#height}px`;
+        this.style.inset = '0';
         this.render();
     }
 
