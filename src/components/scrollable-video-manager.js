@@ -1,16 +1,22 @@
 import { db } from '/src/firebaseConfig.js';
 import {
-    collection, getDocs, query, where, limit, startAfter
+    collection, getDocs, query, where, limit, startAfter, doc, getDoc
 } from 'firebase/firestore';
 import { VideoContainer } from './video-container.js';
-import './video-filters.js'; // adjust the path/name to your file
+import './video-filters.js';
+import { QuizComponent } from "./quiz-component";
+import { Assignment } from "./assignment";
+
+const VIDEO_PARAM = 'video'; // ?video=<id>  (not "id", which your assignment/quiz pages already use)
 
 class ScrollableVideoManager extends HTMLElement {
 
+    #assignmentDOM = null;
+    #quizDOM = null;
+
     #queue = [];
     #queuePosition = 0;
-    #width;
-    #height;
+    #height = 800; // placeholder; replaced by the measured stack height
     #loadError = '';
 
     // query state
@@ -34,12 +40,31 @@ class ScrollableVideoManager extends HTMLElement {
     #threshold = 100;
     #animationMs = 250;
 
+    #resizeObserver = null;
+
     #onFiltersChange = (event) => this.setFilters(event.detail?.filters ?? []);
 
-    constructor(width = 400, height = 800) {
+    #onAssignmentRequested = () => this.#assignmentDOM?.show();
+    #onQuizRequested = () => this.#quizDOM?.show();
+
+    // desktop keyboard navigation
+    #onKey = (event) => {
+        if (this.#animating || this.#dragging || !this.#currentVideo) return;
+        if (event.target.closest?.('input, textarea, select, [contenteditable]')) return;
+
+        if (event.key === 'ArrowDown' && this.#hasNext) {
+            event.preventDefault();
+            this.#nextVideo.showVideo();
+            this.#commit(1);
+        } else if (event.key === 'ArrowUp' && this.#hasLast) {
+            event.preventDefault();
+            this.#lastVideo.showVideo();
+            this.#commit(-1);
+        }
+    };
+
+    constructor() {
         super();
-        this.#width = width;
-        this.#height = height;
     }
 
     // ---------- querying ----------
@@ -83,7 +108,33 @@ class ScrollableVideoManager extends HTMLElement {
         }
     }
 
-    async #reload() {
+    // Fetch one specific video by id; null if missing or unreadable
+    async #fetchVideoById(id) {
+        if (!id) return null;
+        try {
+            const snapshot = await getDoc(doc(db, 'videos', id));
+            return snapshot.exists() ? { id: snapshot.id, ...snapshot.data() } : null;
+        } catch (error) {
+            console.error('Could not load the linked video:', error);
+            return null;
+        }
+    }
+
+    // Mirror the current video into the address bar without adding history entries
+    #updateUrl() {
+        const id = this.#queue[this.#queuePosition]?.id;
+        const url = new URL(window.location.href);
+
+        if (id) {
+            url.searchParams.set(VIDEO_PARAM, id);
+        } else {
+            url.searchParams.delete(VIDEO_PARAM);
+        }
+
+        window.history.replaceState(window.history.state, '', url);
+    }
+
+    async #reload(pinnedId = null) {
         const requestId = ++this.#requestId;
 
         this.#queue = [];
@@ -91,10 +142,19 @@ class ScrollableVideoManager extends HTMLElement {
         this.#cursor = null;
         this.#hasMore = true;
 
-        const firstPage = await this.loadQueueByPage();
+        // fetch the linked video and the first page of the feed in parallel
+        const [pinned, firstPage] = await Promise.all([
+            this.#fetchVideoById(pinnedId),
+            this.loadQueueByPage(),
+        ]);
+
         if (requestId !== this.#requestId) return;
 
-        this.#queue = firstPage;
+        // linked video goes first; drop it from the feed so it isn't shown twice
+        this.#queue = pinned
+            ? [pinned, ...firstPage.filter(video => video.id !== pinned.id)]
+            : firstPage;
+
         this.render();
     }
 
@@ -107,7 +167,9 @@ class ScrollableVideoManager extends HTMLElement {
         this.#loadingMore = false;
         if (requestId !== this.#requestId) return;
 
-        this.#queue = [...this.#queue, ...nextPage];
+        // later pages can contain the linked video, so dedupe against the queue
+        const have = new Set(this.#queue.map(video => video.id));
+        this.#queue = [...this.#queue, ...nextPage.filter(video => !have.has(video.id))];
         this.#refreshNext();
     }
 
@@ -122,6 +184,31 @@ class ScrollableVideoManager extends HTMLElement {
         this.#settle();
     }
 
+    // ---------- assignment / quiz panels ----------
+
+    // Created once; they live next to this element, not inside it
+    #buildPanels() {
+        this.#assignmentDOM = new Assignment();
+        this.#quizDOM = new QuizComponent();
+        this.after(this.#assignmentDOM, this.#quizDOM);
+    }
+
+    // Push the current video's data into the panels and close any that
+    // were left open from the previous video
+    #syncPanels() {
+        if (!this.#assignmentDOM || !this.#quizDOM) return;
+
+        this.#assignmentDOM.hide?.();
+        this.#quizDOM.hide?.();
+
+        const video = this.#queue[this.#queuePosition];
+        if (!video) return;
+
+        this.#assignmentDOM.assignmentText = video.assignment;
+        this.#quizDOM.quiz = video.quiz;
+        this.#quizDOM.quizId = video.id;
+    }
+
     // ---------- layout / gestures ----------
 
     get #hasLast() {
@@ -133,7 +220,17 @@ class ScrollableVideoManager extends HTMLElement {
     }
 
     #createVideo(info) {
-        return new VideoContainer(info ?? {}, this.#width, this.#height);
+        return new VideoContainer(info ?? {});
+    }
+
+    // Keep #height in sync with the real stack height (rotation, URL-bar
+    // collapse, window resize, navbar height change)
+    #measure() {
+        const height = this.#stack?.clientHeight;
+        if (!height || height === this.#height) return;
+        this.#height = height;
+        if (!this.#currentVideo) return;
+        if (!this.#dragging && !this.#animating) this.#layout(0);
     }
 
     #layout(offset = 0, animate = false) {
@@ -149,8 +246,13 @@ class ScrollableVideoManager extends HTMLElement {
 
     #settle() {
         this.#lastVideo.hideVideo();
+        this.#lastVideo.stopVideo();
         this.#nextVideo.hideVideo();
+        this.#nextVideo.stopVideo();
+
         this.#currentVideo.showVideo();
+        this.#currentVideo.playVideo();
+
         this.#layout(0);
     }
 
@@ -246,6 +348,8 @@ class ScrollableVideoManager extends HTMLElement {
         this.#nextVideo = this.#createVideo(this.#queue[this.#queuePosition + 1]);
         this.#stack.append(this.#nextVideo);
         this.#settle();
+        this.#updateUrl();
+        this.#syncPanels();
 
         if (this.#queue.length - 1 - this.#queuePosition <= 2) this.#loadMore();
     }
@@ -258,25 +362,35 @@ class ScrollableVideoManager extends HTMLElement {
         this.#lastVideo = this.#createVideo(this.#queue[this.#queuePosition - 1]);
         this.#stack.append(this.#lastVideo);
         this.#settle();
+        this.#updateUrl();
+        this.#syncPanels();
     }
 
     // ---------- rendering ----------
 
-    // Built once: filters on top, video stack below
+    // Built once: a centred column (phone-width cap on desktop) whose height is
+    // the viewport minus the bottom navbar. Filters on top, video stack below.
     #buildShell() {
-        this.style.display = 'block';
-        this.style.width = `${this.#width}px`;
+        this.style.display = 'flex';
+        this.style.justifyContent = 'center';
+        this.style.width = '100%';
+        this.style.background = '#000';
 
         this.innerHTML = `
-            <div class="position-absolute" style="width: ${this.#width}px; top: 20px; left: 10px;">
-                <div>
-                    <video-filters videoElementWidth="${this.#width}"></video-filters>
-                </div>        
-            </div>
+            <div class="position-relative w-100"
+                 style="max-width: 480px;
+                        height: calc(100vh - var(--bottom-nav-height, 64px));
+                        height: calc(100dvh - var(--bottom-nav-height, 64px));">
 
-            <div data-video-stack
-                 style="position: relative; overflow: hidden; touch-action: none;
-                        width: ${this.#width}px; height: ${this.#height}px;"></div>
+                <div class="position-absolute start-0 end-0"
+                     style="top: 0; z-index: 10;
+                            padding-top: calc(env(safe-area-inset-top, 0px) + 10px);">
+                    <video-filters videoElementWidth="100%"></video-filters>
+                </div>
+
+                <div data-video-stack class="position-relative w-100 h-100"
+                     style="overflow: hidden; touch-action: none;"></div>
+            </div>
         `;
 
         this.#stack = this.querySelector('[data-video-stack]');
@@ -305,6 +419,8 @@ class ScrollableVideoManager extends HTMLElement {
             alert.setAttribute('role', 'alert');
             alert.textContent = message;
             this.#stack.replaceChildren(alert);
+            this.#updateUrl(); // removes ?video= when there's nothing to show
+            this.#syncPanels(); // closes any panel left open
             return;
         }
 
@@ -313,20 +429,42 @@ class ScrollableVideoManager extends HTMLElement {
         this.#nextVideo = this.#createVideo(this.#queue[this.#queuePosition + 1]);
 
         this.#stack.replaceChildren(this.#lastVideo, this.#currentVideo, this.#nextVideo);
+        this.#measure();
         this.#settle();
+        this.#updateUrl();
+        this.#syncPanels();
     }
 
     connectedCallback() {
         if (!this.#stack) this.#buildShell();
+        if (!this.#assignmentDOM) this.#buildPanels();
 
-        // filters now live inside this element, and their event bubbles
+        // filters live inside this element, and their event bubbles
         this.addEventListener('video-filters-change', this.#onFiltersChange);
+        this.addEventListener('video-assignment-requested', this.#onAssignmentRequested);
+        this.addEventListener('video-quiz-requested', this.#onQuizRequested);
+        window.addEventListener('keydown', this.#onKey);
 
-        this.#reload();
+        this.#resizeObserver = new ResizeObserver(() => this.#measure());
+        this.#resizeObserver.observe(this.#stack);
+        this.#measure();
+
+        // a ?video=<id> in the URL is fetched first and shown first
+        const linkedId = new URLSearchParams(window.location.search).get(VIDEO_PARAM);
+        this.#reload(linkedId);
     }
 
     disconnectedCallback() {
         this.removeEventListener('video-filters-change', this.#onFiltersChange);
+        this.removeEventListener('video-assignment-requested', this.#onAssignmentRequested);
+        this.removeEventListener('video-quiz-requested', this.#onQuizRequested);
+        window.removeEventListener('keydown', this.#onKey);
+        this.#resizeObserver?.disconnect();
+
+        this.#assignmentDOM?.remove();
+        this.#quizDOM?.remove();
+        this.#assignmentDOM = null;
+        this.#quizDOM = null;
     }
 }
 

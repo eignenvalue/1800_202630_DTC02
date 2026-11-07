@@ -7,7 +7,21 @@
 
     <!-- Required meta tags -->
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- viewport-fit=cover is required for env(safe-area-inset-*) to work on iOS -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+    <style>
+        html,
+        body {
+            margin: 0;
+            height: 100%;
+            overflow: hidden;
+            /* the feed handles its own scrolling */
+            overscroll-behavior: none;
+            /* no pull-to-refresh / rubber-banding */
+            background: #000;
+        }
+    </style>
 
     <!-- Featured Component -->
     <script type="module" src="/src/components/video-side-navbar.js"></script>
@@ -16,53 +30,19 @@
     <script type="module" src="/src/components/video-filters.js"></script>
     <script type="module" src="/src/components/video-container.js"></script>
     <script type="module" src="/src/components/scrollable-video-manager.js"></script>
-
+    <script type="module" src="/src/components/bottom-navbar.js"></script>
     <script type="module" src="/src/components/assignment.js"></script>
+
     <link rel="stylesheet" href="/node_modules/bootstrap-icons/font/bootstrap-icons.css">
 </head>
 
 <body>
+
     <scrollable-video-manager></scrollable-video-manager>
 
-    <!-- A form to send a message to another user with some ID -->
-
-    <form id="uploadForm">
-
-        <div class="d-flex flex-column">
-            <label for="video-url">
-                <input id="video-url" type="text" name="video-url" placeholder="Video URL">
-            </label>
-
-            <label for="title">
-                <input type="text" name="title" id="title" placeholder="Video Title" maxlength="80" required>
-            </label>
-
-            <label for="description">
-                <input type="text" name="description" id="description" placeholder="Description" maxlength="255"
-                    required>
-            </label>
-        </div>
-
-        <tag-picker></tag-picker>
-
-        <h2>Quiz:</h2>
-        <quiz-builder></quiz-builder>
-
-        <label for="assignment" class="d-flex flex-column">
-            Assignment
-            <textarea name="assignment" id="assignment" style="resize: none;"
-                placeholder="Put your markdown formatted assignment here"></textarea>
-        </label>
-
-        <input type="submit" value="Upload!">
-    </form>
+    <bottom-navbar></bottom-navbar>
 
     <script type="module" src="/src/app.js"></script>
-
-    <script type="module" src="/src/quiz-builder.js"></script>
-    <script type="module" src="/src/tag-picker.js"></script>
-    <script type="module" src="/src/send-video.js"></script>
-
 </body>
 
 </html>

@@ -1,15 +1,18 @@
-import { QuizBuilder } from "../quiz-builder";
-import { Assignment } from "./assignment";
+// Escape user-supplied text before it goes into innerHTML
+const escapeHtml = (value) => String(value ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
 
 export class VideoContainer extends HTMLElement {
 
-    #width;
-    #height;
-    #assignmentDOM;
-    #quizDOM;
     #hide;
+    #active = false; // true while this is the current, playing video
 
     constructor({
+        id = "",
         assignment = "",
         created_at = "",
         description = "",
@@ -21,13 +24,12 @@ export class VideoContainer extends HTMLElement {
         user_id = "",
         username = "",
         video_url = "",
-    } = {}, width = 400, height = 800) {
+    } = {}) {
         super();
 
-        this.#width = width;
-        this.#height = height;
         this.#hide = false;
 
+        this.id = id;
         this.assignment = assignment;
         this.createdAt = created_at;
         this.description = description;
@@ -39,9 +41,6 @@ export class VideoContainer extends HTMLElement {
         this.userId = user_id;
         this.username = username;
         this.video_url = video_url;
-
-        this.#assignmentDOM = new Assignment();
-        this.#quizDOM = new QuizBuilder();
     }
 
     // Toggle display instead of re-rendering so the <video-element>
@@ -60,28 +59,66 @@ export class VideoContainer extends HTMLElement {
         return this.#hide;
     }
 
+    // Finds the <video> inside <video-element> (light DOM or shadow DOM)
+    #findVideo() {
+        const el = this.querySelector('video-element');
+        return el?.querySelector('video') ?? el?.shadowRoot?.querySelector('video') ?? null;
+    }
+
+    // <video-element> may build its <video> a moment after it's attached,
+    // so retry for a few frames before giving up
+    #withVideo(action, tries = 10) {
+        const video = this.#findVideo();
+        if (video) return action(video);
+        if (tries > 0 && this.isConnected) {
+            requestAnimationFrame(() => this.#withVideo(action, tries - 1));
+        }
+    }
+
+    playVideo() {
+        this.#active = true;
+        this.#withVideo(video => {
+            if (!this.#active) return; // moved out of view while waiting
+            video.play().catch(error => console.warn('Could not autoplay video:', error));
+        });
+    }
+
+    // Pause and rewind so it starts from the beginning next time it's shown
+    stopVideo() {
+        this.#active = false;
+        this.#withVideo(video => {
+            if (this.#active) return; // became current again while waiting
+            video.pause();
+            video.currentTime = 0;
+        });
+    }
+
     render() {
         this.innerHTML = `
-            <div class="overflow-hidden position-relative"
-                 style="width: ${this.#width}px; height: ${this.#height}px;">
+            <div class="position-relative w-100 h-100 overflow-hidden">
 
-                <video-element
-                    width="${this.#width}"
-                    height="${this.#height}"
-                    url="${this.video_url}"
-                ></video-element>
+                <video-element url="${escapeHtml(this.video_url)}"></video-element>
 
-                <div class="position-absolute" style="bottom: 30px; right: 0;">
-                    <video-side-navbar video-id="${this.id}"></video-side-navbar>
+                <div class="position-absolute"
+                     style="bottom: 1rem; right: 0.5rem; z-index: 2;">
+                    <video-side-navbar video-id="${escapeHtml(this.id)}"></video-side-navbar>
                 </div>
 
-                <div class="position-absolute" style="bottom: 0; left: 0;">
-                    <details class="text-white">
-                        <summary>
-                            <h2>${this.username}</h2>
-                            <h3>${this.title}</h3>
+                <div class="position-absolute bottom-0 start-0 end-0 text-white"
+                     style="z-index: 1; padding: 3rem 4.5rem 1rem 1rem;
+                            background: linear-gradient(to top, rgba(0,0,0,.65), transparent);
+                            text-shadow: 0 1px 3px rgba(0,0,0,.6);">
+                    <details>
+                        <summary style="list-style-position: inside;">
+                            <h2 class="fs-6 fw-bold d-inline">${escapeHtml(this.username)}</h2>
+                            <h3 class="fs-6 fw-normal m-0">${escapeHtml(this.title)}</h3>
                         </summary>
-                        <p>${this.description}</p>
+                        <div style="max-height: 30vh; overflow-y: auto;">
+                            <p class="small mb-2">${escapeHtml(this.description)}</p>
+                            <ul class="list-unstyled d-flex flex-wrap gap-2 m-0 small">
+                                ${this.tags.map(tag => `<li class="border rounded px-2">${escapeHtml(tag)}</li>`).join('')}
+                            </ul>
+                        </div>
                     </details>
                 </div>
             </div>
@@ -89,13 +126,16 @@ export class VideoContainer extends HTMLElement {
     }
 
     connectedCallback() {
-        // each container is stacked on top of the others and moved with transform
+        // each container is stacked on top of the others, fills the stack,
+        // and is moved with transform
         this.style.position = 'absolute';
-        this.style.top = '0';
-        this.style.left = '0';
-        this.style.width = `${this.#width}px`;
-        this.style.height = `${this.#height}px`;
+        this.style.inset = '0';
         this.render();
+    }
+
+    // Removed from the DOM (e.g. on filter change): detached videos can keep playing audio
+    disconnectedCallback() {
+        this.stopVideo();
     }
 }
 
