@@ -40,6 +40,8 @@ class ScrollableVideoManager extends HTMLElement {
     #threshold = 100;
     #animationMs = 250;
 
+    #maxQueueSize = 100;
+
     #resizeObserver = null;
 
     #onFiltersChange = (event) => this.setFilters(event.detail?.filters ?? []);
@@ -170,7 +172,23 @@ class ScrollableVideoManager extends HTMLElement {
         // later pages can contain the linked video, so dedupe against the queue
         const have = new Set(this.#queue.map(video => video.id));
         this.#queue = [...this.#queue, ...nextPage.filter(video => !have.has(video.id))];
+
+        this.#trimQueue();
         this.#refreshNext();
+    }
+
+    // Drop the oldest items so the queue stays within #maxQueueSize.
+    // Always keeps the video just behind the current one, because its
+    // element is still in the stack and swiping back needs it.
+    #trimQueue() {
+        const excess = this.#queue.length - this.#maxQueueSize;
+        if (excess <= 0) return;
+
+        const removable = Math.min(excess, Math.max(0, this.#queuePosition - 1));
+        if (removable === 0) return;
+
+        this.#queue = this.#queue.slice(removable);
+        this.#queuePosition -= removable;
     }
 
     #refreshNext() {
