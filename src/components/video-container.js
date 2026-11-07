@@ -1,6 +1,3 @@
-import { QuizBuilder } from "../quiz-builder";
-import { Assignment } from "./assignment";
-
 // Escape user-supplied text before it goes into innerHTML
 const escapeHtml = (value) => String(value ?? '')
     .replaceAll('&', '&amp;')
@@ -11,8 +8,6 @@ const escapeHtml = (value) => String(value ?? '')
 
 export class VideoContainer extends HTMLElement {
 
-    #assignmentDOM;
-    #quizDOM;
     #hide;
     #active = false; // true while this is the current, playing video
 
@@ -46,9 +41,6 @@ export class VideoContainer extends HTMLElement {
         this.userId = user_id;
         this.username = username;
         this.video_url = video_url;
-
-        this.#assignmentDOM = new Assignment();
-        this.#quizDOM = new QuizBuilder();
     }
 
     // Toggle display instead of re-rendering so the <video-element>

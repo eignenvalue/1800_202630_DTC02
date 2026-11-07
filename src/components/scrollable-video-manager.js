@@ -3,11 +3,17 @@ import {
     collection, getDocs, query, where, limit, startAfter, doc, getDoc
 } from 'firebase/firestore';
 import { VideoContainer } from './video-container.js';
-import './video-filters.js'; // adjust the path/name to your file
+import './video-filters.js';
+import { QuizComponent } from "./quiz-component";
+import { Assignment } from "./assignment";
 
 const VIDEO_PARAM = 'video'; // ?video=<id>  (not "id", which your assignment/quiz pages already use)
 
 class ScrollableVideoManager extends HTMLElement {
+
+
+    #assignmentDOM;
+    #quizDOM;
 
     #queue = [];
     #queuePosition = 0;
@@ -57,6 +63,8 @@ class ScrollableVideoManager extends HTMLElement {
 
     constructor() {
         super();
+
+
     }
 
     // ---------- querying ----------
@@ -396,6 +404,17 @@ class ScrollableVideoManager extends HTMLElement {
         this.#measure();
         this.#settle();
         this.#updateUrl();
+
+        this.#assignmentDOM = new Assignment();
+        this.#assignmentDOM.assignmentText = this.#queue[this.#queuePosition].assignment;
+
+        this.#quizDOM = new QuizComponent();
+        this.#quizDOM.quiz = this.#queue[this.#queuePosition].quiz;
+        this.#quizDOM.quizId = this.#queue[this.#queuePosition].id;
+
+        this.after(this.#assignmentDOM);
+        this.after(this.#quizDOM);
+
     }
 
     connectedCallback() {
@@ -412,6 +431,16 @@ class ScrollableVideoManager extends HTMLElement {
         // a ?video=<id> in the URL is fetched first and shown first
         const linkedId = new URLSearchParams(window.location.search).get(VIDEO_PARAM);
         this.#reload(linkedId);
+
+        this.addEventListener('video-assignment-requested', event => {
+            console.log(event);
+            this.#assignmentDOM.show();
+        });
+
+        this.addEventListener('video-quiz-requested', event => {
+            console.log(event);
+            this.#quizDOM.show();
+        });
     }
 
     disconnectedCallback() {

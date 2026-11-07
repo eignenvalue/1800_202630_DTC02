@@ -1,6 +1,6 @@
 let quizCount = 0;
 
-class QuizComponent extends HTMLElement {
+export class QuizComponent extends HTMLElement {
   constructor() {
     super();
     this.quizId = "quiz" + quizCount++;
@@ -17,7 +17,7 @@ class QuizComponent extends HTMLElement {
   }
 
   render() {
-    let html = "<form>";
+    let html = "<form><button class='close'>x</button>";
 
     this._quiz.forEach((q, qIndex) => {
       const name = `${this.quizId}-q${qIndex}`;
@@ -47,6 +47,14 @@ class QuizComponent extends HTMLElement {
       event.preventDefault();
       this.checkAnswers();
     });
+
+    this.hide();
+
+    const closeButton = this.querySelector(".close");
+    closeButton.onclick = this.hide.bind(this);
+
+    this.classList.add('position-fixed', 'top-0', 'left-0', 'bg-white', 'w-100', 'h-100')
+    this.style.zIndex = '100';
   }
 
   checkAnswers() {
@@ -57,13 +65,23 @@ class QuizComponent extends HTMLElement {
       const picked = [...this.querySelectorAll(`input[name="${name}"]:checked`)]
         .map((input) => Number(input.value))
         .sort((a, b) => a - b);
+      console.log(picked);
       const correct = [...q.correctAnswers].sort((a, b) => a - b);
+      console.log(correct);
 
       if (picked.join() === correct.join()) score++;
     });
 
     this.querySelector(".score").textContent =
       `You got ${score} out of ${this._quiz.length}!`;
+  }
+
+  show() {
+    this.style.display = 'block';
+  }
+
+  hide() {
+    this.style.display = 'none';
   }
 }
 
