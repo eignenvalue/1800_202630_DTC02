@@ -61,10 +61,17 @@ class VideoSideNavbar extends HTMLElement {
         }
     }
 
-    async handleNavAction(event) {
-        if (event.detail.action !== 'like' || this.isLoading) return;
+    emit(name, detail = {}) {
+        this.dispatchEvent(new CustomEvent(name, {
+            bubbles: true,
+            composed: true,
+            detail: { videoId: this.videoId, ...detail },
+        }));
+    }
 
+    async handleNavAction(event) {
         event.preventDefault();
+        if (this.isLoading) return;
 
         if (!this.user) {
             window.alert('Please sign in to like videos.');
@@ -74,6 +81,27 @@ class VideoSideNavbar extends HTMLElement {
         this.isLoading = true;
         this.render();
 
+        switch (event.detail.action) {
+            case 'like':
+                await this.handleLikeAction();
+                break;
+            case 'assignment':
+                console.log('assignment');
+                this.emit('video-assignment-requested');
+                break;
+            case 'quiz':
+                console.log('quiz');
+                this.emit('video-quiz-requested'); // send with no data, use close button on element to close this is just for opening
+                break;
+            default:
+                break;
+        }
+
+        this.isLoading = false;
+        this.render();
+    }
+
+    async handleLikeAction() {
         try {
             const videoRef = doc(db, 'videos', this.videoId);
             const result = await runTransaction(db, async (transaction) => {
@@ -107,9 +135,6 @@ class VideoSideNavbar extends HTMLElement {
         } catch (error) {
             console.error('Could not update the video like:', error);
             window.alert('Your like could not be saved. Please try again.');
-        } finally {
-            this.isLoading = false;
-            this.render();
         }
     }
 
@@ -127,9 +152,9 @@ class VideoSideNavbar extends HTMLElement {
                         ${this.isLiked ? 'active' : ''}
                         ${this.isLoading ? 'disabled' : ''}
                     ></video-side-navbar-anchor>
-                    <video-side-navbar-anchor label="Share" icon="bi-share" url="#"></video-side-navbar-anchor>
-                    <video-side-navbar-anchor label="Assignment" icon="bi-envelope" url="/assignment.html?id=${id}"></video-side-navbar-anchor>
-                    <video-side-navbar-anchor label="Quiz" icon="bi-question" url="/quiz.html?id=${id}"></video-side-navbar-anchor>
+                    <video-side-navbar-anchor action="share" label="Share" icon="bi-share" url="#"></video-side-navbar-anchor>
+                    <video-side-navbar-anchor action="assignment" label="Assignment" icon="bi-envelope" url="/assignment.html?id=${id}"></video-side-navbar-anchor>
+                    <video-side-navbar-anchor action="quiz" label="Quiz" icon="bi-question" url="/quiz.html?id=${id}"></video-side-navbar-anchor>
                 </ul>
             </nav>
         `;
