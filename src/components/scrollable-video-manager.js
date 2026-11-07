@@ -11,9 +11,8 @@ const VIDEO_PARAM = 'video'; // ?video=<id>  (not "id", which your assignment/qu
 
 class ScrollableVideoManager extends HTMLElement {
 
-
-    #assignmentDOM;
-    #quizDOM;
+    #assignmentDOM = null;
+    #quizDOM = null;
 
     #queue = [];
     #queuePosition = 0;
@@ -45,6 +44,9 @@ class ScrollableVideoManager extends HTMLElement {
 
     #onFiltersChange = (event) => this.setFilters(event.detail?.filters ?? []);
 
+    #onAssignmentRequested = () => this.#assignmentDOM?.show();
+    #onQuizRequested = () => this.#quizDOM?.show();
+
     // desktop keyboard navigation
     #onKey = (event) => {
         if (this.#animating || this.#dragging || !this.#currentVideo) return;
@@ -63,8 +65,6 @@ class ScrollableVideoManager extends HTMLElement {
 
     constructor() {
         super();
-
-
     }
 
     // ---------- querying ----------
@@ -182,6 +182,31 @@ class ScrollableVideoManager extends HTMLElement {
         this.#nextVideo.replaceWith(fresh);
         this.#nextVideo = fresh;
         this.#settle();
+    }
+
+    // ---------- assignment / quiz panels ----------
+
+    // Created once; they live next to this element, not inside it
+    #buildPanels() {
+        this.#assignmentDOM = new Assignment();
+        this.#quizDOM = new QuizComponent();
+        this.after(this.#assignmentDOM, this.#quizDOM);
+    }
+
+    // Push the current video's data into the panels and close any that
+    // were left open from the previous video
+    #syncPanels() {
+        if (!this.#assignmentDOM || !this.#quizDOM) return;
+
+        this.#assignmentDOM.hide?.();
+        this.#quizDOM.hide?.();
+
+        const video = this.#queue[this.#queuePosition];
+        if (!video) return;
+
+        this.#assignmentDOM.assignmentText = video.assignment;
+        this.#quizDOM.quiz = video.quiz;
+        this.#quizDOM.quizId = video.id;
     }
 
     // ---------- layout / gestures ----------
@@ -324,6 +349,7 @@ class ScrollableVideoManager extends HTMLElement {
         this.#stack.append(this.#nextVideo);
         this.#settle();
         this.#updateUrl();
+        this.#syncPanels();
 
         if (this.#queue.length - 1 - this.#queuePosition <= 2) this.#loadMore();
     }
@@ -337,6 +363,7 @@ class ScrollableVideoManager extends HTMLElement {
         this.#stack.append(this.#lastVideo);
         this.#settle();
         this.#updateUrl();
+        this.#syncPanels();
     }
 
     // ---------- rendering ----------
@@ -393,6 +420,7 @@ class ScrollableVideoManager extends HTMLElement {
             alert.textContent = message;
             this.#stack.replaceChildren(alert);
             this.#updateUrl(); // removes ?video= when there's nothing to show
+            this.#syncPanels(); // closes any panel left open
             return;
         }
 
@@ -404,24 +432,17 @@ class ScrollableVideoManager extends HTMLElement {
         this.#measure();
         this.#settle();
         this.#updateUrl();
-
-        this.#assignmentDOM = new Assignment();
-        this.#assignmentDOM.assignmentText = this.#queue[this.#queuePosition].assignment;
-
-        this.#quizDOM = new QuizComponent();
-        this.#quizDOM.quiz = this.#queue[this.#queuePosition].quiz;
-        this.#quizDOM.quizId = this.#queue[this.#queuePosition].id;
-
-        this.after(this.#assignmentDOM);
-        this.after(this.#quizDOM);
-
+        this.#syncPanels();
     }
 
     connectedCallback() {
         if (!this.#stack) this.#buildShell();
+        if (!this.#assignmentDOM) this.#buildPanels();
 
         // filters live inside this element, and their event bubbles
         this.addEventListener('video-filters-change', this.#onFiltersChange);
+        this.addEventListener('video-assignment-requested', this.#onAssignmentRequested);
+        this.addEventListener('video-quiz-requested', this.#onQuizRequested);
         window.addEventListener('keydown', this.#onKey);
 
         this.#resizeObserver = new ResizeObserver(() => this.#measure());
@@ -431,22 +452,19 @@ class ScrollableVideoManager extends HTMLElement {
         // a ?video=<id> in the URL is fetched first and shown first
         const linkedId = new URLSearchParams(window.location.search).get(VIDEO_PARAM);
         this.#reload(linkedId);
-
-        this.addEventListener('video-assignment-requested', event => {
-            console.log(event);
-            this.#assignmentDOM.show();
-        });
-
-        this.addEventListener('video-quiz-requested', event => {
-            console.log(event);
-            this.#quizDOM.show();
-        });
     }
 
     disconnectedCallback() {
         this.removeEventListener('video-filters-change', this.#onFiltersChange);
+        this.removeEventListener('video-assignment-requested', this.#onAssignmentRequested);
+        this.removeEventListener('video-quiz-requested', this.#onQuizRequested);
         window.removeEventListener('keydown', this.#onKey);
         this.#resizeObserver?.disconnect();
+
+        this.#assignmentDOM?.remove();
+        this.#quizDOM?.remove();
+        this.#assignmentDOM = null;
+        this.#quizDOM = null;
     }
 }
 
