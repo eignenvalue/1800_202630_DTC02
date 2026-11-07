@@ -3,11 +3,16 @@ import {
     collection, getDocs, query, where, limit, startAfter, doc, getDoc
 } from 'firebase/firestore';
 import { VideoContainer } from './video-container.js';
-import './video-filters.js'; // adjust the path/name to your file
+import './video-filters.js';
+import { QuizComponent } from "./quiz-component";
+import { Assignment } from "./assignment";
 
 const VIDEO_PARAM = 'video'; // ?video=<id>  (not "id", which your assignment/quiz pages already use)
 
 class ScrollableVideoManager extends HTMLElement {
+
+    #assignmentDOM = null;
+    #quizDOM = null;
 
     #queue = [];
     #queuePosition = 0;
@@ -38,6 +43,9 @@ class ScrollableVideoManager extends HTMLElement {
     #resizeObserver = null;
 
     #onFiltersChange = (event) => this.setFilters(event.detail?.filters ?? []);
+
+    #onAssignmentRequested = () => this.#assignmentDOM?.show();
+    #onQuizRequested = () => this.#quizDOM?.show();
 
     // desktop keyboard navigation
     #onKey = (event) => {
@@ -174,6 +182,31 @@ class ScrollableVideoManager extends HTMLElement {
         this.#nextVideo.replaceWith(fresh);
         this.#nextVideo = fresh;
         this.#settle();
+    }
+
+    // ---------- assignment / quiz panels ----------
+
+    // Created once; they live next to this element, not inside it
+    #buildPanels() {
+        this.#assignmentDOM = new Assignment();
+        this.#quizDOM = new QuizComponent();
+        this.after(this.#assignmentDOM, this.#quizDOM);
+    }
+
+    // Push the current video's data into the panels and close any that
+    // were left open from the previous video
+    #syncPanels() {
+        if (!this.#assignmentDOM || !this.#quizDOM) return;
+
+        this.#assignmentDOM.hide?.();
+        this.#quizDOM.hide?.();
+
+        const video = this.#queue[this.#queuePosition];
+        if (!video) return;
+
+        this.#assignmentDOM.assignmentText = video.assignment;
+        this.#quizDOM.quiz = video.quiz;
+        this.#quizDOM.quizId = video.id;
     }
 
     // ---------- layout / gestures ----------
@@ -316,6 +349,7 @@ class ScrollableVideoManager extends HTMLElement {
         this.#stack.append(this.#nextVideo);
         this.#settle();
         this.#updateUrl();
+        this.#syncPanels();
 
         if (this.#queue.length - 1 - this.#queuePosition <= 2) this.#loadMore();
     }
@@ -329,6 +363,7 @@ class ScrollableVideoManager extends HTMLElement {
         this.#stack.append(this.#lastVideo);
         this.#settle();
         this.#updateUrl();
+        this.#syncPanels();
     }
 
     // ---------- rendering ----------
@@ -385,6 +420,7 @@ class ScrollableVideoManager extends HTMLElement {
             alert.textContent = message;
             this.#stack.replaceChildren(alert);
             this.#updateUrl(); // removes ?video= when there's nothing to show
+            this.#syncPanels(); // closes any panel left open
             return;
         }
 
@@ -396,13 +432,17 @@ class ScrollableVideoManager extends HTMLElement {
         this.#measure();
         this.#settle();
         this.#updateUrl();
+        this.#syncPanels();
     }
 
     connectedCallback() {
         if (!this.#stack) this.#buildShell();
+        if (!this.#assignmentDOM) this.#buildPanels();
 
         // filters live inside this element, and their event bubbles
         this.addEventListener('video-filters-change', this.#onFiltersChange);
+        this.addEventListener('video-assignment-requested', this.#onAssignmentRequested);
+        this.addEventListener('video-quiz-requested', this.#onQuizRequested);
         window.addEventListener('keydown', this.#onKey);
 
         this.#resizeObserver = new ResizeObserver(() => this.#measure());
@@ -416,8 +456,15 @@ class ScrollableVideoManager extends HTMLElement {
 
     disconnectedCallback() {
         this.removeEventListener('video-filters-change', this.#onFiltersChange);
+        this.removeEventListener('video-assignment-requested', this.#onAssignmentRequested);
+        this.removeEventListener('video-quiz-requested', this.#onQuizRequested);
         window.removeEventListener('keydown', this.#onKey);
         this.#resizeObserver?.disconnect();
+
+        this.#assignmentDOM?.remove();
+        this.#quizDOM?.remove();
+        this.#assignmentDOM = null;
+        this.#quizDOM = null;
     }
 }
 
