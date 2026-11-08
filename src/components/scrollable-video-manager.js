@@ -69,6 +69,24 @@ class ScrollableVideoManager extends HTMLElement {
         super();
     }
 
+    goNext() {
+        if (this.#animating || this.#dragging || !this.#currentVideo) return;
+
+        if (this.#hasNext) {
+            this.#nextVideo.showVideo();
+            this.#commit(1);
+        }
+    }
+
+    goPrevious(){
+        if (this.#animating || this.#dragging || !this.#currentVideo) return;
+        
+        if (this.#hasLast) {
+            this.#lastVideo.showVideo();
+            this.#commit(-1);
+        }
+    }
+
     // ---------- querying ----------
 
     async setFilters(filters) {
