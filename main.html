@@ -7,43 +7,83 @@
 
     <!-- Required meta tags -->
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- viewport-fit=cover is required for env(safe-area-inset-*) to work on iOS -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 
-    <!-- Web Components for shared navbar and footer layout -->
-    <script type="module" src="/src/components/site-navbar.js"></script>
-    <script type="module" src="/src/components/site-footer.js"></script>
+    <style>
+        html,
+        body {
+            margin: 0;
+            height: 100%;
+            overflow: hidden;
+            /* the feed handles its own scrolling */
+            overscroll-behavior: none;
+            /* no pull-to-refresh / rubber-banding */
+            background: #000;
+        }
+
+        #video-buttons {
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+            position: fixed;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        #video-buttons button {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: none;
+            background-color: #b8b3b3;
+            color: black;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        #video-buttons button:hover {
+            background-color: #555;
+        }
+
+        @media (min-width: 768px) {
+            #video-buttons {
+                display: flex;
+            }
+
+            quiz-component form {
+                max-width: 700px;
+                margin: 0 auto;
+            }
+
+        }
+    </style>
+
+    <!-- Featured Component -->
+    <script type="module" src="/src/components/video-side-navbar.js"></script>
+    <script type="module" src="/src/components/video-side-navbar-anchor.js"></script>
+    <script type="module" src="/src/components/video-element.js"></script>
+    <script type="module" src="/src/components/video-filters.js"></script>
+    <script type="module" src="/src/components/video-container.js"></script>
+    <script type="module" src="/src/components/scrollable-video-manager.js"></script>
     <script type="module" src="/src/components/bottom-navbar.js"></script>
+    <script type="module" src="/src/components/assignment.js"></script>
+
+    <link rel="stylesheet" href="/node_modules/bootstrap-icons/font/bootstrap-icons.css">
 </head>
 
 <body>
-    <!------------------------------>
-    <!-- Your HTML Layout go here -->
-    <!------------------------------>
 
-    <!-- our own navbar goes here -->
-    <site-navbar></site-navbar>
+    <scrollable-video-manager></scrollable-video-manager>
 
-    <!-- Main content goes here -->
-    <div class="container-fluid bg-light text-dark p-5">
-        <div class="container bg-light p-5">
-            <h1 class="display-4">Good morning <span id="name-goes-here">friend </span> </h1>
-            <hr>
-            <p>Quote of the day: The best view comes after the hardest climb.</p>
-        </div>
-    </div>
     <bottom-navbar></bottom-navbar>
-
-    <!-- our own footer goes here -->
-    <site-footer></site-footer>
-
-    <!---------------------------------------------->
-    <!-- Your own JavaScript scripts go here      -->
-    <!---------------------------------------------->
+    <div id="video-buttons">
+        <button id="video-up">▲</button>
+        <button id="video-down">▼</button>
+    </div>
 
     <script type="module" src="/src/app.js"></script>
-    <script type="module" src="/src/main.js"></script>
-    
-
 </body>
 
 </html>

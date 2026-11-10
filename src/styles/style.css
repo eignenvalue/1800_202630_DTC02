@@ -1,114 +1,231 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900;1000&display=swap');
 .width-max-content {
-    width: max-content;
+  width: max-content;
 }
 
 .height-max-content {
-    height: max-content;
+  height: max-content;
 }
 
 #scrollableVideoFilters {
-    touch-action: pan-y;
+  touch-action: pan-y;
 }
 
 .video-nav-action {
-    width: 100%;
+  width: 100%;
 }
 
 .video-nav-action:disabled {
-    cursor: wait;
-    opacity: 0.65;
+  cursor: wait;
+  opacity: 0.65;
 }
 
 .video-nav-action:focus-visible {
-    outline: 3px solid #fff;
-    outline-offset: 3px;
-    border-radius: 0.25rem;
+  outline: 3px solid #fff;
+  outline-offset: 3px;
+  border-radius: 0.25rem;
 }
 
 .video-nav-count {
-    font-size: 0.8rem;
-    line-height: 1;
+  font-size: 0.8rem;
+  line-height: 1;
 }
 
-details>summary {
-    list-style: none;
+.video-double-tap-heart {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  color: #dc3545;
+  font-size: clamp(6rem, 30vw, 10rem);
+  pointer-events: none;
+  opacity: 0;
+  transform: scale(0.35);
+  filter: drop-shadow(0 0.2rem 0.35rem rgb(0 0 0 / 45%));
+}
+
+.video-double-tap-heart.is-visible {
+  animation: video-heart-pop 700ms ease-out;
+}
+
+@keyframes video-heart-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.35);
+  }
+  20% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+  45% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.25);
+  }
+}
+
+details > summary {
+  list-style: none;
 }
 
 #assignment-content {
-    font-size: 20px;
-    margin-top: 20px;
-    margin: 30px;
-    font-style: arial;
+  font-size: 20px;
+  margin-top: 20px;
+  margin: 30px;
+  font-style: arial;
 }
 
 #assignment-content h1 {
-    margin-top: 20px;
+  margin-top: 20px;
 }
 
 #assignment-content ol {
-    margin-top: 10px;
-    font-weight: bold;
+  margin-top: 10px;
+  font-weight: bold;
 }
 
-#assignment-content p>strong {
-    font-size: 25px;
+#assignment-content p > strong {
+  font-size: 25px;
 }
 
 #assignment-content p {
-    line-height: 40px;
+  line-height: 40px;
 }
 
 #assignment-content h2 {
-    margin-top: 20px;
-    border-bottom: 1px solid #222;
-    padding-bottom: 1rem;
+  margin-top: 20px;
+  border-bottom: 1px solid #222;
+  padding-bottom: 1rem;
 }
 
 #assignment-content h3 {
-    margin-top: 20px;
-    font-size: 1.4rem;
-    margin-top: 1.5rem;
-    margin-bottom: 0.5rem;
+  margin-top: 20px;
+  font-size: 1.4rem;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
 }
 
 #assignment-content h4 {
-    margin-top: 20px;
-    font-size: 1.2rem;
-    color: #0d6efd;
-    margin-bottom: 0.5rem;
+  margin-top: 20px;
+  font-size: 1.2rem;
+  color: #0d6efd;
+  margin-bottom: 0.5rem;
 }
 
 #assignment-content h5 {
-    margin-top: 20px;
-    font-size: 1.05rem;
-    font-weight: 600;
-    margin-bottom: 0.4rem;
+  margin-top: 20px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-bottom: 0.4rem;
 }
 
 #assignment-content h6 {
-    margin-top: 20px;
-    font-size: 0.9rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: #666;
+  margin-top: 20px;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #666;
 }
 
 #assignment-content ul {
-    margin-top: 10px;
-    padding-left: 1.5rem;
-    margin-bottom: 1rem;
+  margin-top: 10px;
+  padding-left: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 #assignment-content li {
-    margin-top: 10px;
-    margin-bottom: 0.5rem;
-    line-height: 1.5;
+  margin-top: 10px;
+  margin-bottom: 0.5rem;
+  line-height: 1.5;
 }
 
 .bottom-navbar {
-    padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 body {
-    padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+}
+
+.profile-page {
+  min-height: 100vh;
+  background-color: #000;
+  color: #fff;
+  color-scheme: dark;
+}
+
+.profile-page main {
+  max-width: 720px;
+}
+
+.profile-page .profile-muted {
+  color: #a8a8a8;
+}
+
+.profile-page .profile-video-card {
+  background-color: #121212;
+  border: 1px solid #2b2b2b;
+  border-radius: 0.5rem;
+  transition: border-color 150ms ease, transform 150ms ease;
+}
+
+.profile-page .profile-video-card:hover,
+.profile-page .profile-video-card:focus-visible {
+  border-color: #5a5a5a;
+  transform: translateY(-2px);
+}
+
+.profile-page back-button button {
+  margin: 0 !important;
+  padding: 0.25rem 0.75rem !important;
+  background-color: transparent !important;
+  border-color: #555 !important;
+  color: #fff !important;
+  font-size: 1.5rem !important;
+}
+
+.profile-page bottom-navbar nav {
+  background-color: #000 !important;
+  border-top: 1px solid #272727;
+}
+
+quiz-component {
+  color: black;
+  font-family: 'Nunito', sans-serif;
+  font-weight: bold;
+}
+quiz-component form {
+  padding: 20px;
+}
+
+quiz-component .quiz {
+  background-color: hsl(0, 75%, 57%);
+  padding: 20px;
+  border-radius: 10px;
+  margin-bottom: 15px;
+  margin-top: 20px;
+}
+quiz-component .question {
+  font-size: 40px;
+  font-weight: 1000;
+  margin-bottom: 20px;
+}
+quiz-component .close {
+  background-color: #333;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 5px 12px;
+  font-size: 20px;
+}
+quiz-component .each-quiz {
+    font-size: 20px;
+}
+.btn{
+    background-color: hsl(0, 75%, 57%);
+    border: none;
 }

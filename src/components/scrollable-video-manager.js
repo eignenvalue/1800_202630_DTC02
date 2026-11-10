@@ -36,9 +36,15 @@ class ScrollableVideoManager extends HTMLElement {
     #dragging = false;
     #animating = false;
     #startY = 0;
+    #startX = 0;
     #offsetY = 0;
+    #lastTapTime = 0;
+    #lastTapX = 0;
+    #lastTapY = 0;
     #threshold = 100;
     #animationMs = 250;
+
+    #maxQueueSize = 100;
 
     #resizeObserver = null;
 
@@ -65,6 +71,24 @@ class ScrollableVideoManager extends HTMLElement {
 
     constructor() {
         super();
+    }
+
+    goNext() {
+        if (this.#animating || this.#dragging || !this.#currentVideo) return;
+
+        if (this.#hasNext) {
+            this.#nextVideo.showVideo();
+            this.#commit(1);
+        }
+    }
+
+    goPrevious(){
+        if (this.#animating || this.#dragging || !this.#currentVideo) return;
+        
+        if (this.#hasLast) {
+            this.#lastVideo.showVideo();
+            this.#commit(-1);
+        }
     }
 
     // ---------- querying ----------
@@ -170,7 +194,23 @@ class ScrollableVideoManager extends HTMLElement {
         // later pages can contain the linked video, so dedupe against the queue
         const have = new Set(this.#queue.map(video => video.id));
         this.#queue = [...this.#queue, ...nextPage.filter(video => !have.has(video.id))];
+
+        this.#trimQueue();
         this.#refreshNext();
+    }
+
+    // Drop the oldest items so the queue stays within #maxQueueSize.
+    // Always keeps the video just behind the current one, because its
+    // element is still in the stack and swiping back needs it.
+    #trimQueue() {
+        const excess = this.#queue.length - this.#maxQueueSize;
+        if (excess <= 0) return;
+
+        const removable = Math.min(excess, Math.max(0, this.#queuePosition - 1));
+        if (removable === 0) return;
+
+        this.#queue = this.#queue.slice(removable);
+        this.#queuePosition -= removable;
     }
 
     #refreshNext() {
@@ -261,6 +301,7 @@ class ScrollableVideoManager extends HTMLElement {
         if (event.target.closest('button, a, summary, input, video-side-navbar')) return;
 
         this.#dragging = true;
+        this.#startX = event.clientX;
         this.#startY = event.clientY;
         this.#offsetY = 0;
         this.#stack.setPointerCapture(event.pointerId);
@@ -285,9 +326,23 @@ class ScrollableVideoManager extends HTMLElement {
         this.#layout(offset);
     }
 
-    #onPointerUp() {
+    #onPointerUp(event) {
         if (!this.#dragging) return;
         this.#dragging = false;
+
+        if (event?.type === 'pointercancel') {
+            this.#snapBack();
+            return;
+        }
+
+        const movedX = Math.abs((event?.clientX ?? this.#startX) - this.#startX);
+        const isTap = Math.abs(this.#offsetY) < 15 && movedX < 15;
+
+        if (isTap) {
+            this.#layout(0);
+            this.#handleTap(event);
+            return;
+        }
 
         if (this.#offsetY > this.#threshold) {
             this.#commit(-1);
@@ -296,6 +351,24 @@ class ScrollableVideoManager extends HTMLElement {
         } else {
             this.#snapBack();
         }
+    }
+
+    #handleTap(event) {
+        const now = Date.now();
+        const x = event?.clientX ?? this.#startX;
+        const y = event?.clientY ?? this.#startY;
+        const timeSinceLastTap = now - this.#lastTapTime;
+        const distanceFromLastTap = Math.hypot(x - this.#lastTapX, y - this.#lastTapY);
+
+        if (timeSinceLastTap > 0 && timeSinceLastTap <= 350 && distanceFromLastTap <= 60) {
+            this.#lastTapTime = 0;
+            this.#currentVideo?.likeFromDoubleTap();
+            return;
+        }
+
+        this.#lastTapTime = now;
+        this.#lastTapX = x;
+        this.#lastTapY = y;
     }
 
     #onWheel(event) {
@@ -397,8 +470,8 @@ class ScrollableVideoManager extends HTMLElement {
 
         this.#stack.addEventListener('pointerdown', e => this.#onPointerDown(e));
         this.#stack.addEventListener('pointermove', e => this.#onPointerMove(e));
-        this.#stack.addEventListener('pointerup', () => this.#onPointerUp());
-        this.#stack.addEventListener('pointercancel', () => this.#onPointerUp());
+        this.#stack.addEventListener('pointerup', e => this.#onPointerUp(e));
+        this.#stack.addEventListener('pointercancel', e => this.#onPointerUp(e));
         this.#stack.addEventListener('wheel', e => this.#onWheel(e), { passive: false });
     }
 

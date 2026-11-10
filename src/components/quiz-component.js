@@ -1,12 +1,12 @@
 let quizCount = 0;
 
 const escapeHtml = (value) =>
-  String(value ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
+  String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 
 export class QuizComponent extends HTMLElement {
   #uid = `quiz${quizCount++}`; // unique per instance, used for input names
@@ -28,22 +28,28 @@ export class QuizComponent extends HTMLElement {
     const questions = this.#quiz;
 
     const body = questions.length
-      ? questions.map((q, qIndex) => {
-        const name = `${this.#uid}-q${qIndex}`;
-        const type = q.type === 'checkbox' ? 'checkbox' : 'radio';
-        const options = (q.possibleAnswers ?? []).map((option, i) => `
+      ? questions
+          .map((q, qIndex) => {
+            const name = `${this.#uid}-q${qIndex}`;
+            const type = q.type === "checkbox" ? "checkbox" : "radio";
+            const options = (q.possibleAnswers ?? [])
+              .map(
+                (option, i) => `
             <div class="each-quiz form-check">
               <input class="form-check-input" type="${type}" name="${name}" id="${name}-${i}" value="${i}" />
               <label class="form-check-label" for="${name}-${i}">${escapeHtml(option)}</label>
-            </div>`).join('');
+            </div>`,
+              )
+              .join("");
 
-        return `
+            return `
             <div class="quiz">
-              <hr />
               <h1 class="question">${escapeHtml(q.question)}</h1>
               ${options}
             </div>`;
-      }).join('') + `
+          })
+          .join("") +
+        `
           <div class="text-center">
             <button class="btn btn-primary mt-5" type="submit">Submit</button>
             <p class="score mt-3 fs-4"></p>
@@ -56,8 +62,8 @@ export class QuizComponent extends HTMLElement {
         ${body}
       </form>`;
 
-    this.querySelector('.close').onclick = () => this.hide();
-    this.querySelector('form').addEventListener('submit', (event) => {
+    this.querySelector(".close").onclick = () => this.hide();
+    this.querySelector("form").addEventListener("submit", (event) => {
       event.preventDefault();
       this.checkAnswers();
     });
@@ -78,26 +84,35 @@ export class QuizComponent extends HTMLElement {
       if (picked.join() === correct.join()) score++;
     });
 
-    const scoreEl = this.querySelector('.score');
-    if (scoreEl) scoreEl.textContent = `You got ${score} out of ${this.#quiz.length}!`;
+    const scoreEl = this.querySelector(".score");
+    if (scoreEl){
+      if (score == this.#quiz.length){
+        scoreEl.textContent = `You got ${score} out of ${this.#quiz.length} 🎉`;
+      } 
+      else {
+        scoreEl.textContent = `You got ${score} out of ${this.#quiz.length} !`;
+      }
+    }
   }
 
   connectedCallback() {
     if (!this.#styled) {
-      this.classList.add('position-fixed', 'top-0', 'start-0', 'bg-white', 'w-100', 'h-100');
-      this.style.zIndex = '100';
+      this.classList.add("position-fixed", "top-0", "start-0", "w-100", "bg-secondary");
+      this.style.height = "calc(100% - 72px)";
+      this.style.zIndex = "100";
+      this.style.overflowY = "auto";
       this.#styled = true;
     }
     this.#render(); // renders the empty state and hides, even if quiz was never set
   }
 
   show() {
-    this.style.display = 'block';
+    this.style.display = "block";
   }
 
   hide() {
-    this.style.display = 'none';
+    this.style.display = "none";
   }
 }
 
-customElements.define('quiz-component', QuizComponent);
+customElements.define("quiz-component", QuizComponent);

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Profile | WarrenHikes</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <script type="module" src="/src/components/back-button.js"></script>
+    <script type="module" src="/src/components/bottom-navbar.js"></script>
+</head>
+
+<body class="profile-page">
+    <main class="container py-4">
+        <header class="position-relative text-center mb-4">
+            <back-button class="position-absolute start-0 top-50 translate-middle-y"></back-button>
+            <i class="bi bi-person-circle display-2 d-block text-secondary" aria-hidden="true"></i>
+            <h1 id="profile-name" class="h2 mb-1">Profile</h1>
+            <p id="profile-email" class="profile-muted mb-0"></p>
+        </header>
+
+        <section id="saved-likes" aria-labelledby="saved-likes-heading">
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <i class="bi bi-heart-fill fs-3 text-danger" aria-hidden="true"></i>
+                <h2 id="saved-likes-heading" class="h3 mb-0">Saved Likes</h2>
+            </div>
+
+            <div id="saved-likes-status" class="text-center profile-muted py-5" role="status">
+                Loading your saved likes…
+            </div>
+            <div id="saved-likes-grid" class="row g-3" aria-live="polite"></div>
+
+            <template id="videoCardTemplate">
+                <div class="col-6 col-md-4">
+                    <a class="read-more card profile-video-card h-100 text-decoration-none text-white overflow-hidden">
+                        <video class="card-image card-img-top bg-black"
+                               style="aspect-ratio: 9 / 16; object-fit: cover;"
+                               muted playsinline preload="metadata"></video>
+                        <div class="card-body p-3">
+                            <h3 class="card-title h6 mb-1"></h3>
+                            <p class="card-text small profile-muted mb-2"></p>
+                            <small class="text-danger">
+                                <i class="bi bi-heart-fill" aria-hidden="true"></i>
+                                <span class="card-likes"></span>
+                            </small>
+                        </div>
+                    </a>
+                </div>
+            </template>
+        </section>
+    </main>
+
+    <bottom-navbar></bottom-navbar>
+
+    <script type="module" src="/src/app.js"></script>
+    <script type="module" src="/src/profile.js"></script>
+</body>
+
+</html>
