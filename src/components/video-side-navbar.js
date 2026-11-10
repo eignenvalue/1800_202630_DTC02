@@ -1,6 +1,13 @@
 import { auth, db } from '/src/firebaseConfig.js';
 import { onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc, runTransaction } from 'firebase/firestore';
+import {
+    arrayRemove,
+    arrayUnion,
+    doc,
+    getDoc,
+    increment,
+    setDoc,
+} from 'firebase/firestore';
 
 class VideoSideNavbar extends HTMLElement {
     constructor() {
@@ -73,7 +80,7 @@ class VideoSideNavbar extends HTMLElement {
         event.preventDefault();
         if (this.isLoading) return;
 
-        if (!this.user) {
+        if (event.detail.action === 'like' && !this.user) {
             window.alert('Please sign in to like videos.');
             return;
         }
@@ -84,6 +91,9 @@ class VideoSideNavbar extends HTMLElement {
         switch (event.detail.action) {
             case 'like':
                 await this.handleLikeAction();
+                break;
+            case 'share':
+                await this.handleShareAction();
                 break;
             case 'assignment':
                 console.log('assignment');
@@ -101,40 +111,75 @@ class VideoSideNavbar extends HTMLElement {
         this.render();
     }
 
+    async handleShareAction() {
+        try {
+            // Build a link to this specific video, even if the address bar has
+            // not finished updating after the user scrolls to a new video.
+            const shareUrl = new URL(window.location.href);
+            shareUrl.searchParams.set('video', this.videoId);
+
+            // Ask the browser to copy the completed link to the clipboard.
+            await navigator.clipboard.writeText(shareUrl.toString());
+            window.alert('Video link copied to your clipboard.');
+        } catch (error) {
+            console.error('Could not copy the video link:', error);
+            window.alert('The link could not be copied. Please check your browser clipboard permissions.');
+        }
+    }
+
+    // Used by a double tap on the video. Double tapping can add a like,
+    // but it does not remove an existing like.
+    async likeVideo() {
+        if (this.isLoading) return false;
+
+        if (!this.user) {
+            window.alert('Please sign in to like videos.');
+            return false;
+        }
+
+        if (this.isLiked) return true;
+
+        this.isLoading = true;
+        this.render();
+        const saved = await this.handleLikeAction();
+        this.isLoading = false;
+        this.render();
+
+        return saved && this.isLiked;
+    }
+
     async handleLikeAction() {
         try {
+            // The Firestore address of the current video.
             const videoRef = doc(db, 'videos', this.videoId);
-            const result = await runTransaction(db, async (transaction) => {
-                const videoSnapshot = await transaction.get(videoRef);
 
-                if (!videoSnapshot.exists()) {
-                    throw new Error('This video no longer exists.');
-                }
+            if (this.isLiked) {
+                // Filled heart: remove this user's ID from the video.
+                await setDoc(videoRef, {
+                    liked_by: arrayRemove(this.user.uid),
+                    like_count: increment(-1),
+                }, { merge: true });
 
-                const video = videoSnapshot.data();
-                const likedBy = Array.isArray(video.liked_by) ? video.liked_by : [];
-                const wasLiked = likedBy.includes(this.user.uid);
-                const updatedLikedBy = wasLiked
-                    ? likedBy.filter((userId) => userId !== this.user.uid)
-                    : [...likedBy, this.user.uid];
+                // Update the front end after Firestore saves successfully.
+                this.isLiked = false;
+                this.likeCount = Math.max(0, this.likeCount - 1);
+            } else {
+                // Empty heart: add this user's ID to the video.
+                await setDoc(videoRef, {
+                    liked_by: arrayUnion(this.user.uid),
+                    like_count: increment(1),
+                }, { merge: true });
 
-                transaction.update(videoRef, {
-                    liked_by: updatedLikedBy,
-                    like_count: updatedLikedBy.length,
-                });
+                // Update the front end after Firestore saves successfully.
+                this.isLiked = true;
+                this.likeCount += 1;
+            }
 
-                return {
-                    isLiked: !wasLiked,
-                    likeCount: updatedLikedBy.length,
-                };
-            });
-
-            // Only update the UI after Firestore confirms the write.
-            this.isLiked = result.isLiked;
-            this.likeCount = result.likeCount;
+            return true;
         } catch (error) {
             console.error('Could not update the video like:', error);
             window.alert('Your like could not be saved. Please try again.');
+            return false;
         }
     }
 

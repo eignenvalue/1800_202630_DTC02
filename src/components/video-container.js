@@ -93,11 +93,31 @@ export class VideoContainer extends HTMLElement {
         });
     }
 
+    async likeFromDoubleTap() {
+        const sideNavbar = this.querySelector('video-side-navbar');
+        const liked = await sideNavbar?.likeVideo();
+
+        if (!liked) return;
+
+        const heart = this.querySelector('.video-double-tap-heart');
+        if (!heart) return;
+
+        // Removing and re-adding the class restarts the animation on every
+        // double tap, including when the video was already liked.
+        heart.classList.remove('is-visible');
+        void heart.offsetWidth;
+        heart.classList.add('is-visible');
+    }
+
     render() {
         this.innerHTML = `
             <div class="position-relative w-100 h-100 overflow-hidden">
 
                 <video-element url="${escapeHtml(this.video_url)}"></video-element>
+
+                <div class="video-double-tap-heart" aria-hidden="true">
+                    <i class="bi bi-heart-fill"></i>
+                </div>
 
                 <div class="position-absolute"
                      style="bottom: 1rem; right: 0.5rem; z-index: 2;">
