@@ -36,7 +36,11 @@ class ScrollableVideoManager extends HTMLElement {
     #dragging = false;
     #animating = false;
     #startY = 0;
+    #startX = 0;
     #offsetY = 0;
+    #lastTapTime = 0;
+    #lastTapX = 0;
+    #lastTapY = 0;
     #threshold = 100;
     #animationMs = 250;
 
@@ -297,6 +301,7 @@ class ScrollableVideoManager extends HTMLElement {
         if (event.target.closest('button, a, summary, input, video-side-navbar')) return;
 
         this.#dragging = true;
+        this.#startX = event.clientX;
         this.#startY = event.clientY;
         this.#offsetY = 0;
         this.#stack.setPointerCapture(event.pointerId);
@@ -321,9 +326,23 @@ class ScrollableVideoManager extends HTMLElement {
         this.#layout(offset);
     }
 
-    #onPointerUp() {
+    #onPointerUp(event) {
         if (!this.#dragging) return;
         this.#dragging = false;
+
+        if (event?.type === 'pointercancel') {
+            this.#snapBack();
+            return;
+        }
+
+        const movedX = Math.abs((event?.clientX ?? this.#startX) - this.#startX);
+        const isTap = Math.abs(this.#offsetY) < 15 && movedX < 15;
+
+        if (isTap) {
+            this.#layout(0);
+            this.#handleTap(event);
+            return;
+        }
 
         if (this.#offsetY > this.#threshold) {
             this.#commit(-1);
@@ -332,6 +351,24 @@ class ScrollableVideoManager extends HTMLElement {
         } else {
             this.#snapBack();
         }
+    }
+
+    #handleTap(event) {
+        const now = Date.now();
+        const x = event?.clientX ?? this.#startX;
+        const y = event?.clientY ?? this.#startY;
+        const timeSinceLastTap = now - this.#lastTapTime;
+        const distanceFromLastTap = Math.hypot(x - this.#lastTapX, y - this.#lastTapY);
+
+        if (timeSinceLastTap > 0 && timeSinceLastTap <= 350 && distanceFromLastTap <= 60) {
+            this.#lastTapTime = 0;
+            this.#currentVideo?.likeFromDoubleTap();
+            return;
+        }
+
+        this.#lastTapTime = now;
+        this.#lastTapX = x;
+        this.#lastTapY = y;
     }
 
     #onWheel(event) {
@@ -433,8 +470,8 @@ class ScrollableVideoManager extends HTMLElement {
 
         this.#stack.addEventListener('pointerdown', e => this.#onPointerDown(e));
         this.#stack.addEventListener('pointermove', e => this.#onPointerMove(e));
-        this.#stack.addEventListener('pointerup', () => this.#onPointerUp());
-        this.#stack.addEventListener('pointercancel', () => this.#onPointerUp());
+        this.#stack.addEventListener('pointerup', e => this.#onPointerUp(e));
+        this.#stack.addEventListener('pointercancel', e => this.#onPointerUp(e));
         this.#stack.addEventListener('wheel', e => this.#onWheel(e), { passive: false });
     }
 

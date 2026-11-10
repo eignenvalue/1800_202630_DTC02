@@ -20,12 +20,7 @@ class BottomNavbar extends HTMLElement {
                         <small>Messages</small>
                     </a>
 
-                    <a href="liked.html" class="nav-link flex-fill text-center text-white">
-                        <i class="bi bi-heart-fill fs-4 d-block"></i>
-                        <small>Liked</small>
-                    </a>
-
-                    <a href="/profile" class="nav-link flex-fill text-center text-white">
+                    <a href="profile.html" class="nav-link flex-fill text-center text-white">
                         <i class="bi bi-person-circle fs-4 d-block"></i>
                         <small>Profile</small>
                     </a>
