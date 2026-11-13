@@ -27,29 +27,31 @@ export class QuizComponent extends HTMLElement {
   #render() {
     const questions = this.#quiz;
 
+
+
     const body = questions.length
       ? questions
-          .map((q, qIndex) => {
-            const name = `${this.#uid}-q${qIndex}`;
-            const type = q.type === "checkbox" ? "checkbox" : "radio";
-            const options = (q.possibleAnswers ?? [])
-              .map(
-                (option, i) => `
+        .map((q, qIndex) => {
+          const name = `${this.#uid}-q${qIndex}`;
+          const type = q.type === "checkbox" ? "checkbox" : "radio";
+          const options = (q.possibleAnswers ?? [])
+            .map(
+              (option, i) => `
             <div class="each-quiz form-check">
               <input class="form-check-input" type="${type}" name="${name}" id="${name}-${i}" value="${i}" />
               <label class="form-check-label" for="${name}-${i}">${escapeHtml(option)}</label>
             </div>`,
-              )
-              .join("");
+            )
+            .join("");
 
-            return `
+          return `
             <div class="quiz">
               <h1 class="question">${escapeHtml(q.question)}</h1>
               ${options}
             </div>`;
-          })
-          .join("") +
-        `
+        })
+        .join("") +
+      `
           <div class="text-center">
             <button class="btn btn-primary mt-5" type="submit">Submit</button>
             <p class="score mt-3 fs-4"></p>
@@ -68,7 +70,11 @@ export class QuizComponent extends HTMLElement {
       this.checkAnswers();
     });
 
-    this.hide(); // a fresh render always starts closed
+    const url = new URL(window.location);
+    if (!url.searchParams.get('quizOpen')) {
+      this.style.display = 'none';
+    }
+
   }
 
   checkAnswers() {
@@ -85,10 +91,10 @@ export class QuizComponent extends HTMLElement {
     });
 
     const scoreEl = this.querySelector(".score");
-    if (scoreEl){
-      if (score == this.#quiz.length){
+    if (scoreEl) {
+      if (score == this.#quiz.length) {
         scoreEl.textContent = `You got ${score} out of ${this.#quiz.length} 🎉`;
-      } 
+      }
       else {
         scoreEl.textContent = `You got ${score} out of ${this.#quiz.length} !`;
       }
@@ -107,10 +113,16 @@ export class QuizComponent extends HTMLElement {
   }
 
   show() {
+    const url = new URL(window.location);
+    url.searchParams.set('quizOpen', 1);
+    window.history.replaceState({}, '', url);
     this.style.display = "block";
   }
 
   hide() {
+    const url = new URL(window.location);
+    url.searchParams.delete('quizOpen', 1);
+    window.history.replaceState({}, '', url);
     this.style.display = "none";
   }
 }
