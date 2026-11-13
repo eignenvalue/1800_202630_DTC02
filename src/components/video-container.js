@@ -124,6 +124,10 @@ export class VideoContainer extends HTMLElement {
         heart.classList.remove('is-visible');
         void heart.offsetWidth;
         heart.classList.add('is-visible');
+
+        if (this.#paused) {
+            this.playVideo();
+        }
     }
 
     render() {
