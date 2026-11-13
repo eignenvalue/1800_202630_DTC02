@@ -50,8 +50,13 @@ class ScrollableVideoManager extends HTMLElement {
 
     #onFiltersChange = (event) => this.setFilters(event.detail?.filters ?? []);
 
-    #onAssignmentRequested = () => this.#assignmentDOM?.show();
-    #onQuizRequested = () => this.#quizDOM?.show();
+    #onAssignmentRequested = () => {
+        this.#assignmentDOM.show();
+
+    }
+    #onQuizRequested = () => {
+        this.#quizDOM.show();
+    }
 
     // desktop keyboard navigation
     #onKey = (event) => {
@@ -237,9 +242,6 @@ class ScrollableVideoManager extends HTMLElement {
     // were left open from the previous video
     #syncPanels() {
         if (!this.#assignmentDOM || !this.#quizDOM) return;
-
-        this.#assignmentDOM.hide?.();
-        this.#quizDOM.hide?.();
 
         const video = this.#queue[this.#queuePosition];
         if (!video) return;

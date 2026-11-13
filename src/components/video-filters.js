@@ -32,7 +32,6 @@ class VideoFilters extends HTMLElement {
             url.searchParams.delete('filter', name);
         } else {
             this.#selected.add(name);
-            // add to the url
             url.searchParams.append('filter', name);
         }
 
