@@ -10,6 +10,7 @@ export class VideoContainer extends HTMLElement {
 
     #hide;
     #active = false; // true while this is the current, playing video
+    #paused = true;
 
     constructor({
         id = "",
@@ -77,10 +78,26 @@ export class VideoContainer extends HTMLElement {
 
     playVideo() {
         this.#active = true;
+        this.#paused = false;
         this.#withVideo(video => {
             if (!this.#active) return; // moved out of view while waiting
             video.play().catch(error => console.warn('Could not autoplay video:', error));
         });
+    }
+
+    pauseVideo() {
+        this.#paused = true;
+        this.#withVideo(video => {
+            video.pause();
+        });
+    }
+
+    handleTap() {
+        if (this.#paused) {
+            this.playVideo();
+        } else {
+            this.pauseVideo();
+        }
     }
 
     // Pause and rewind so it starts from the beginning next time it's shown
@@ -107,6 +124,10 @@ export class VideoContainer extends HTMLElement {
         heart.classList.remove('is-visible');
         void heart.offsetWidth;
         heart.classList.add('is-visible');
+
+        if (this.#paused) {
+            this.playVideo();
+        }
     }
 
     render() {

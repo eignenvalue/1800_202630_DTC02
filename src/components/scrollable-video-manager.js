@@ -368,6 +368,8 @@ class ScrollableVideoManager extends HTMLElement {
             return;
         }
 
+        this.#currentVideo.handleTap();
+
         this.#lastTapTime = now;
         this.#lastTapX = x;
         this.#lastTapY = y;
