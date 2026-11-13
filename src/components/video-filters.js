@@ -11,6 +11,10 @@ class VideoFilters extends HTMLElement {
     constructor() {
         super();
 
+        const url = new URL(window.location);
+        const result = url.searchParams.getAll('filter');
+        result.forEach(item => this.#selected.add(item))
+
         // must match the strings stored in each video's `tags` array
         this.#filters = ['Science', 'Math', 'Art', 'Technology', 'Graphic Design', 'Programming', 'Engineering'];
     }
@@ -21,12 +25,18 @@ class VideoFilters extends HTMLElement {
 
     #toggleFilter(chip) {
         const name = chip.dataset.filter;
+        const url = new URL(window.location);
 
         if (this.#selected.has(name)) {
             this.#selected.delete(name);
+            url.searchParams.delete('filter', name);
         } else {
             this.#selected.add(name);
+            // add to the url
+            url.searchParams.append('filter', name);
         }
+
+        window.history.replaceState({}, '', url);
 
         const isOn = this.#selected.has(name);
         chip.classList.toggle('bg-primary', isOn);

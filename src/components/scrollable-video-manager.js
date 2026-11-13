@@ -82,9 +82,9 @@ class ScrollableVideoManager extends HTMLElement {
         }
     }
 
-    goPrevious(){
+    goPrevious() {
         if (this.#animating || this.#dragging || !this.#currentVideo) return;
-        
+
         if (this.#hasLast) {
             this.#lastVideo.showVideo();
             this.#commit(-1);
