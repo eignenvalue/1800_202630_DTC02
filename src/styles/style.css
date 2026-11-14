@@ -36,7 +36,6 @@
   position: absolute;
   inset: 0;
   z-index: 3;
-  display: grid;
   place-items: center;
   color: #dc3545;
   font-size: clamp(6rem, 30vw, 10rem);
@@ -44,9 +43,11 @@
   opacity: 0;
   transform: scale(0.35);
   filter: drop-shadow(0 0.2rem 0.35rem rgb(0 0 0 / 45%));
+  display: none;
 }
 
 .video-icon-overlay.is-visible {
+  display: grid;
   animation: video-heart-pop 700ms ease-out;
 }
 
