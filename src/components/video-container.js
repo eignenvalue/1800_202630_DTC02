@@ -128,7 +128,7 @@ export class VideoContainer extends HTMLElement {
 
     async likeFromDoubleTap() {
         const sideNavbar = this.querySelector('video-side-navbar');
-        const liked = await sideNavbar?.likeVideo();
+        const liked = await sideNavbar.likeVideo();
 
         if (!liked) return;
 
