@@ -17,6 +17,11 @@ export class Assignment extends HTMLElement {
         this.classList.add('position-fixed', 'top-0', 'start-0', 'bg-white', 'w-100', 'h-100');
         this.style.zIndex = '100';
 
+        const url = new URL(window.location);
+        if (!url.searchParams.get('assignmentOpen')) {
+            this.style.display = 'none';
+        }
+
         this.innerHTML = `
             <div>
                 <button class="close" type="button">X</button>
@@ -38,16 +43,21 @@ export class Assignment extends HTMLElement {
     connectedCallback() {
         if (!this.#content) {
             this.#buildShell();
-            this.hide(); // start closed, only on first build
         }
         this.#renderContent();
     }
 
     show() {
+        const url = new URL(window.location);
+        url.searchParams.set('assignmentOpen', 1);
+        window.history.replaceState({}, '', url);
         this.style.display = 'block';
     }
 
     hide() {
+        const url = new URL(window.location);
+        url.searchParams.delete('assignmentOpen');
+        window.history.replaceState({}, '', url);
         this.style.display = 'none';
     }
 }

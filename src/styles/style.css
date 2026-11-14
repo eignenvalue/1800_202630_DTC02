@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900;1000&display=swap');
+
 .width-max-content {
   width: max-content;
 }
@@ -31,11 +32,10 @@
   line-height: 1;
 }
 
-.video-double-tap-heart {
+.video-icon-overlay {
   position: absolute;
   inset: 0;
   z-index: 3;
-  display: grid;
   place-items: center;
   color: #dc3545;
   font-size: clamp(6rem, 30vw, 10rem);
@@ -43,9 +43,11 @@
   opacity: 0;
   transform: scale(0.35);
   filter: drop-shadow(0 0.2rem 0.35rem rgb(0 0 0 / 45%));
+  display: none;
 }
 
-.video-double-tap-heart.is-visible {
+.video-icon-overlay.is-visible {
+  display: grid;
   animation: video-heart-pop 700ms ease-out;
 }
 
@@ -54,21 +56,24 @@
     opacity: 0;
     transform: scale(0.35);
   }
+
   20% {
     opacity: 1;
     transform: scale(1.15);
   }
+
   45% {
     opacity: 1;
     transform: scale(1);
   }
+
   100% {
     opacity: 0;
     transform: scale(1.25);
   }
 }
 
-details > summary {
+details>summary {
   list-style: none;
 }
 
@@ -88,7 +93,7 @@ details > summary {
   font-weight: bold;
 }
 
-#assignment-content p > strong {
+#assignment-content p>strong {
   font-size: 25px;
 }
 
@@ -198,6 +203,7 @@ quiz-component {
   font-family: 'Nunito', sans-serif;
   font-weight: bold;
 }
+
 quiz-component form {
   padding: 20px;
 }
@@ -209,11 +215,13 @@ quiz-component .quiz {
   margin-bottom: 15px;
   margin-top: 20px;
 }
+
 quiz-component .question {
   font-size: 40px;
   font-weight: 1000;
   margin-bottom: 20px;
 }
+
 quiz-component .close {
   background-color: #333;
   color: white;
@@ -222,10 +230,12 @@ quiz-component .close {
   padding: 5px 12px;
   font-size: 20px;
 }
+
 quiz-component .each-quiz {
-    font-size: 20px;
+  font-size: 20px;
 }
-.btn{
-    background-color: hsl(0, 75%, 57%);
-    border: none;
+
+.btn {
+  background-color: hsl(0, 75%, 57%);
+  border: none;
 }
