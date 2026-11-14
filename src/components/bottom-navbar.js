@@ -10,17 +10,17 @@ class BottomNavbar extends HTMLElement {
                  aria-label="Main navigation">
                 <div class="container-fluid d-flex justify-content-around flex-nowrap px-0"
                      style="max-width: 480px;">
-                    <a href="main.html" class="nav-link flex-fill text-center text-white">
+                    <a href="/" class="nav-link flex-fill text-center text-white">
                         <i class="bi bi-house-fill fs-4 d-block"></i>
                         <small>Home</small>
                     </a>
 
-                    <a href="messages.html" class="nav-link flex-fill text-center text-white">
+                    <a href="/messages" class="nav-link flex-fill text-center text-white">
                         <i class="bi bi-chat-dots fs-4 d-block"></i>
                         <small>Messages</small>
                     </a>
 
-                    <a href="profile.html" class="nav-link flex-fill text-center text-white">
+                    <a href="/profile" class="nav-link flex-fill text-center text-white">
                         <i class="bi bi-person-circle fs-4 d-block"></i>
                         <small>Profile</small>
                     </a>
