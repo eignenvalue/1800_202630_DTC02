@@ -1,3 +1,7 @@
+import { db } from "/src/firebaseConfig.js";
+import { doc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
+
 let quizCount = 0;
 
 const escapeHtml = (value) =>
@@ -20,38 +24,36 @@ export class QuizComponent extends HTMLElement {
   }
 
   set quiz(value) {
-    this.#quiz = Array.isArray(value) ? value : []; 
+    this.#quiz = Array.isArray(value) ? value : [];
     if (this.isConnected) this.#render();
   }
 
   #render() {
     const questions = this.#quiz;
 
-
-
     const body = questions.length
       ? questions
-        .map((q, qIndex) => {
-          const name = `${this.#uid}-q${qIndex}`;
-          const type = q.type === "checkbox" ? "checkbox" : "radio";
-          const options = (q.possibleAnswers ?? [])
-            .map(
-              (option, i) => `
+          .map((q, qIndex) => {
+            const name = `${this.#uid}-q${qIndex}`;
+            const type = q.type === "checkbox" ? "checkbox" : "radio";
+            const options = (q.possibleAnswers ?? [])
+              .map(
+                (option, i) => `
             <div class="each-quiz form-check">
               <input class="form-check-input" type="${type}" name="${name}" id="${name}-${i}" value="${i}" />
               <label class="form-check-label" for="${name}-${i}">${escapeHtml(option)}</label>
             </div>`,
-            )
-            .join("");
+              )
+              .join("");
 
-          return `
+            return `
             <div class="quiz">
               <h1 class="question">${escapeHtml(q.question)}</h1>
               ${options}
             </div>`;
-        })
-        .join("") +
-      `
+          })
+          .join("") +
+        `
           <div class="text-center">
             <button class="btn btn-primary mt-5" type="submit">Submit</button>
             <p class="score mt-3 fs-4"></p>
@@ -71,10 +73,9 @@ export class QuizComponent extends HTMLElement {
     });
 
     const url = new URL(window.location);
-    if (!url.searchParams.get('quizOpen')) {
-      this.style.display = 'none';
+    if (!url.searchParams.get("quizOpen")) {
+      this.style.display = "none";
     }
-
   }
 
   checkAnswers() {
@@ -94,10 +95,21 @@ export class QuizComponent extends HTMLElement {
     if (scoreEl) {
       if (score == this.#quiz.length) {
         scoreEl.textContent = `You got ${score} out of ${this.#quiz.length} 🎉`;
-      }
-      else {
+      } else {
         scoreEl.textContent = `You got ${score} out of ${this.#quiz.length} !`;
       }
+    }
+    const user = getAuth().currentUser;
+    const videoId = this.quizId || new URL(window.location).searchParams.get("video");
+
+    if (user && videoId) {
+      updateDoc(doc(db, "users", user.uid), {
+        [`completed_quizzes.${videoId}`]: {
+          score: score,
+          total: this.#quiz.length,
+          completedAt: serverTimestamp(),
+        },
+      }).catch((err) => console.error("Could not save quiz grade:", err));
     }
   }
 
@@ -115,15 +127,15 @@ export class QuizComponent extends HTMLElement {
 
   show() {
     const url = new URL(window.location);
-    url.searchParams.set('quizOpen', 1);
-    window.history.replaceState({}, '', url);
+    url.searchParams.set("quizOpen", 1);
+    window.history.replaceState({}, "", url);
     this.style.display = "block";
   }
 
   hide() {
     const url = new URL(window.location);
-    url.searchParams.delete('quizOpen', 1);
-    window.history.replaceState({}, '', url);
+    url.searchParams.delete("quizOpen", 1);
+    window.history.replaceState({}, "", url);
     this.style.display = "none";
   }
 }
