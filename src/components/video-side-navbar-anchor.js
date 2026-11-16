@@ -36,7 +36,7 @@ class VideoSideNavbarAnchor extends HTMLElement {
             <li class="mb-3">
                 ${this.action
                     ? `<button type="button"
-                            class="video-nav-action d-flex flex-column align-items-center text-center text-white text-decoration-none bg-transparent border-0 p-0"
+                            class="video-nav-action d-flex flex-column align-items-center text-center text-white text-decoration-none bg-transparent border-0 p-0" 
                             aria-label="${this.label}"
                             aria-pressed="${this.active}"
                             ${this.disabled ? 'disabled aria-busy="true"' : ''}>${content}</button>`

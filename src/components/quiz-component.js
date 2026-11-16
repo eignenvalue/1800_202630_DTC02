@@ -20,7 +20,7 @@ export class QuizComponent extends HTMLElement {
   }
 
   set quiz(value) {
-    this.#quiz = Array.isArray(value) ? value : [];
+    this.#quiz = Array.isArray(value) ? value : []; 
     if (this.isConnected) this.#render();
   }
 
@@ -103,7 +103,8 @@ export class QuizComponent extends HTMLElement {
 
   connectedCallback() {
     if (!this.#styled) {
-      this.classList.add("position-fixed", "top-0", "start-0", "w-100", "bg-secondary");
+      this.classList.add("position-fixed", "top-0", "start-0", "w-100");
+      this.style.backgroundColor = "Black";
       this.style.height = "calc(100% - 72px)";
       this.style.zIndex = "100";
       this.style.overflowY = "auto";
