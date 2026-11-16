@@ -7,7 +7,8 @@ import './video-filters.js';
 import { QuizComponent } from "./quiz-component";
 import { Assignment } from "./assignment";
 
-const VIDEO_PARAM = 'video'; // ?video=<id>  (not "id", which your assignment/quiz pages already use)
+const VIDEO_PARAM = 'videoId';
+const OLD_VIDEO_PARAM = 'video'; // Keep previously shared links working.
 
 class ScrollableVideoManager extends HTMLElement {
 
@@ -159,6 +160,7 @@ class ScrollableVideoManager extends HTMLElement {
         } else {
             url.searchParams.delete(VIDEO_PARAM);
         }
+        url.searchParams.delete(OLD_VIDEO_PARAM);
 
         window.history.replaceState(window.history.state, '', url);
     }
@@ -496,7 +498,7 @@ class ScrollableVideoManager extends HTMLElement {
             alert.setAttribute('role', 'alert');
             alert.textContent = message;
             this.#stack.replaceChildren(alert);
-            this.#updateUrl(); // removes ?video= when there's nothing to show
+            this.#updateUrl(); // removes ?videoId= when there's nothing to show
             this.#syncPanels(); // closes any panel left open
             return;
         }
@@ -526,8 +528,9 @@ class ScrollableVideoManager extends HTMLElement {
         this.#resizeObserver.observe(this.#stack);
         this.#measure();
 
-        // a ?video=<id> in the URL is fetched first and shown first
-        const linkedId = new URLSearchParams(window.location.search).get(VIDEO_PARAM);
+        // A ?videoId=<id> in the URL is fetched first and shown first.
+        const parameters = new URLSearchParams(window.location.search);
+        const linkedId = parameters.get(VIDEO_PARAM) || parameters.get(OLD_VIDEO_PARAM);
         this.#reload(linkedId);
     }
 
