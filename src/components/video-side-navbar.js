@@ -195,7 +195,7 @@ class VideoSideNavbar extends HTMLElement {
             <nav>
                 <ul class="list-unstyled d-inline-block mb-0">
                     <video-side-navbar-anchor
-                        label="Like"
+                        label=""
                         icon="${this.isLiked ? 'bi-heart-fill' : 'bi-heart'}"
                         action="like"
                         count="${this.likeCount}"
