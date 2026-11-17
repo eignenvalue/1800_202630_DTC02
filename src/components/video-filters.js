@@ -62,9 +62,6 @@ class VideoFilters extends HTMLElement {
                 padding: 0 0 10px 0;
                 margin: 0 10px;
             }
-            video-filters.paused .video-filters-scroller {
-                display: initial;
-            }
             video-filters .video-filters-scroller::-webkit-scrollbar { background: transparent; height: 4px; }
             video-filters .video-filters-scroller::-webkit-scrollbar-thumb { background: #dc3545; border-radius: 999px; }
             video-filters .video-filter-off { background: rgba(0, 0, 0, .45); }
