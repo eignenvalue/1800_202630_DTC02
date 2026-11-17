@@ -38,7 +38,7 @@ class VideoFilters extends HTMLElement {
         window.history.replaceState({}, '', url);
 
         const isOn = this.#selected.has(name);
-        chip.classList.toggle('bg-primary', isOn);
+        chip.classList.toggle('bg-actual-primary', isOn);
         chip.classList.toggle('video-filter-off', !isOn);
         chip.setAttribute('aria-pressed', String(isOn));
 
@@ -63,7 +63,7 @@ class VideoFilters extends HTMLElement {
             }
             video-filters .video-filters-scroller::-webkit-scrollbar { height: 4px; }
             video-filters .video-filters-scroller::-webkit-scrollbar-track { margin: 0 10px; }
-            video-filters .video-filter-off { background: rgba(0, 0, 0, .45); }
+            video-filters .video-filter-off { background-color: transparent; }
             video-filters .video-filters-scroller.dragging { cursor: grabbing; }
         `;
 
@@ -83,8 +83,8 @@ class VideoFilters extends HTMLElement {
             chip.dataset.filter = filter;
             chip.textContent = filter;
             chip.setAttribute('aria-pressed', String(isOn));
-            chip.className = 'border rounded px-3 py-2 text-white user-select-none text-nowrap '
-                + (isOn ? 'bg-primary' : 'video-filter-off');
+            chip.className = 'border-0 px-3 py-2 text-white user-select-none text-nowrap rounded fw-semibold '
+                + (isOn ? 'bg-actual-primary' : 'video-filter-off');
 
             li.appendChild(chip);
             list.appendChild(li);

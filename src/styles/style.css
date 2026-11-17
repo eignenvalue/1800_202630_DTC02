@@ -11,6 +11,10 @@
   border-radius: 999px;
 }
 
+.bg-actual-primary {
+  background-color: #dc3545;
+}
+
 .width-max-content {
   width: max-content;
 }
