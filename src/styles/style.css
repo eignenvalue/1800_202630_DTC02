@@ -1,5 +1,16 @@
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900;1000&display=swap');
 
+::-webkit-scrollbar {
+  background: transparent;
+  width: 7px;
+  height: 7px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #dc3545;
+  border-radius: 999px;
+}
+
 .width-max-content {
   width: max-content;
 }
@@ -185,16 +196,16 @@ body {
 }
 
 .profile-page back-button button {
-  margin: 0 ;
-  padding: 0.25rem 0.75rem ;
-  background-color: transparent ;
-  border-color: #555 ;
-  color: #fff ;
-  font-size: 1.5rem ;
+  margin: 0;
+  padding: 0.25rem 0.75rem;
+  background-color: transparent;
+  border-color: #555;
+  color: #fff;
+  font-size: 1.5rem;
 }
 
 .profile-page bottom-navbar nav {
-  background-color: #000 ;
+  background-color: #000;
   border-top: 1px solid #272727;
 }
 
@@ -230,7 +241,7 @@ quiz-component .close {
   padding: 5px 12px;
   font-size: 25px;
   font-weight: bold;
-  
+
 }
 
 quiz-component .each-quiz {

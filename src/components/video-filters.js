@@ -59,11 +59,10 @@ class VideoFilters extends HTMLElement {
                 overflow-y: hidden;
                 -webkit-overflow-scrolling: touch;
                 touch-action: pan-x;                /* horizontal swipes scroll the chips */
-                padding: 0 0 10px 0;
-                margin: 0 10px;
+                padding: 0 10px 10px 10px;
             }
-            video-filters .video-filters-scroller::-webkit-scrollbar { background: transparent; height: 4px; }
-            video-filters .video-filters-scroller::-webkit-scrollbar-thumb { background: #dc3545; border-radius: 999px; }
+            video-filters .video-filters-scroller::-webkit-scrollbar { height: 4px; }
+            video-filters .video-filters-scroller::-webkit-scrollbar-track { margin: 0 10px; }
             video-filters .video-filter-off { background: rgba(0, 0, 0, .45); }
             video-filters .video-filters-scroller.dragging { cursor: grabbing; }
         `;
