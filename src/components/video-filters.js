@@ -66,7 +66,7 @@ class VideoFilters extends HTMLElement {
                 display: initial;
             }
             video-filters .video-filters-scroller::-webkit-scrollbar { background: transparent; height: 4px; }
-            video-filters .video-filters-scroller::-webkit-scrollbar-thumb { background: grey; border-radius: 999px; }
+            video-filters .video-filters-scroller::-webkit-scrollbar-thumb { background: #dc3545; border-radius: 999px; }
             video-filters .video-filter-off { background: rgba(0, 0, 0, .45); }
             video-filters .video-filters-scroller.dragging { cursor: grabbing; }
         `;
