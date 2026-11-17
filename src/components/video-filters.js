@@ -59,7 +59,7 @@ class VideoFilters extends HTMLElement {
                 overflow-y: hidden;
                 -webkit-overflow-scrolling: touch;
                 touch-action: pan-x;                /* horizontal swipes scroll the chips */
-                padding: 0 10px 10px 10px;
+                padding: 0 5px 7px 5px;
 
             }
             video-filters .video-filters-scroller::-webkit-scrollbar { height: 4px; }
@@ -84,7 +84,7 @@ class VideoFilters extends HTMLElement {
             chip.dataset.filter = filter;
             chip.textContent = filter;
             chip.setAttribute('aria-pressed', String(isOn));
-            chip.className = 'border-0 px-3 py-2 text-white user-select-none text-nowrap rounded fw-semibold '
+            chip.className = 'border-0 px-2 py-1 text-white user-select-none text-nowrap rounded fw-semibold '
                 + (isOn ? 'bg-actual-primary' : 'video-filter-off');
 
             li.appendChild(chip);
