@@ -1,4 +1,4 @@
-import { onAuthReady } from '/src/authentication.js';
+import { onAuthReady, logoutUser } from '/src/authentication.js';
 import { db } from '/src/firebaseConfig.js';
 import { collection, getDocs, query, where, startAfter, limit } from 'firebase/firestore';
 
@@ -41,7 +41,7 @@ async function displayLikedVideosDynamically() {
             newcard.querySelector('.card-image').src = `/videos/${thisVideo.video_url}`;
 
             // Add the link with the Firestore document ID.
-            newcard.querySelector('.read-more').href = `video-side-navbar.html?video=${doc.id}`;
+            newcard.querySelector('.read-more').href = `video-side-navbar.html?videoId=${doc.id}`;
 
             // Attach the completed card to the profile page.
             document.getElementById('saved-likes-grid').appendChild(newcard);
@@ -75,6 +75,11 @@ onAuthReady(async function (user) {
         currentUser = user;
         document.getElementById('profile-name').textContent = user.displayName || 'Your Profile';
         document.getElementById('profile-email').textContent = user.email || '';
+
+        // Connect the logout button to the Firebase logout function.
+        const logoutButton = document.getElementById('logout-button');
+        logoutButton.addEventListener('click', logoutUser);
+
         observer = new IntersectionObserver(entries => {
             if (entries[0].isIntersecting){
                 displayLikedVideosDynamically();

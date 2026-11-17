@@ -1,3 +1,5 @@
+import { onAuthReady } from "/src/authentication.js";
+import { showLoginModal } from "./login-modal.js";
 import { db } from "/src/firebaseConfig.js";
 import { doc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
@@ -16,6 +18,9 @@ export class QuizComponent extends HTMLElement {
   #uid = `quiz${quizCount++}`; // unique per instance, used for input names
   #quiz = [];
   #styled = false;
+  #currentUser = undefined;
+  #quizRequested = false;
+  #stopAuthCheck = null;
 
   quizId = null; // the video id; plain data, no longer used for input names
 
@@ -114,6 +119,8 @@ export class QuizComponent extends HTMLElement {
   }
 
   connectedCallback() {
+    this.style.display = "none";
+
     if (!this.#styled) {
       this.classList.add("position-fixed", "top-0", "start-0", "w-100");
       this.style.backgroundColor = "Black";
@@ -122,10 +129,44 @@ export class QuizComponent extends HTMLElement {
       this.style.overflowY = "auto";
       this.#styled = true;
     }
+
+    // Check the Firebase login state before opening a requested quiz.
+    this.#stopAuthCheck = onAuthReady((user) => {
+      this.#currentUser = user;
+
+      if (!this.#quizRequested) return;
+
+      if (!user) {
+        showLoginModal("Please log in before starting this quiz.");
+      } else {
+        this.#openQuiz();
+      }
+    });
+
     this.#render(); // renders the empty state and hides, even if quiz was never set
+
+    // A quiz opened from a saved URL must pass the same login check.
+    const url = new URL(window.location);
+    if (url.searchParams.get("quizOpen")) {
+      this.show();
+    }
   }
 
   show() {
+    this.#quizRequested = true;
+
+    // undefined means Firebase is still checking the login state.
+    if (this.#currentUser === undefined) return;
+
+    if (!this.#currentUser) {
+      showLoginModal("Please log in before starting this quiz.");
+      return;
+    }
+
+    this.#openQuiz();
+  }
+
+  #openQuiz() {
     const url = new URL(window.location);
     url.searchParams.set("quizOpen", 1);
     window.history.replaceState({}, "", url);
@@ -133,10 +174,19 @@ export class QuizComponent extends HTMLElement {
   }
 
   hide() {
+    this.#quizRequested = false;
     const url = new URL(window.location);
     url.searchParams.delete("quizOpen", 1);
     window.history.replaceState({}, "", url);
     this.style.display = "none";
+  }
+
+  disconnectedCallback() {
+    if (this.#stopAuthCheck) {
+      this.#stopAuthCheck();
+      this.#stopAuthCheck = null;
+    }
+    this.#currentUser = undefined;
   }
 }
 
