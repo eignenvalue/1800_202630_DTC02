@@ -460,10 +460,13 @@ class ScrollableVideoManager extends HTMLElement {
                  style="max-width: 480px;
                         height: calc(100vh - var(--bottom-nav-height, 64px));
                         height: calc(100dvh - var(--bottom-nav-height, 64px));">
-
-                <div class="position-absolute start-0 end-0"
-                     style="top: 0; z-index: 10;
-                            padding-top: calc(env(safe-area-inset-top, 0px) + 10px);">
+                <div class="position-absolute start-0 end-0" style="
+                        background: linear-gradient(to bottom, rgba(0,0,0,.65), transparent);
+                        text-shadow: 0 1px 3px rgba(0,0,0,.6);
+                        top: 0; 
+                        z-index: 10; 
+                        padding-top: calc(env(safe-area-inset-top, 0px) + 10px);
+                    ">
                     <video-filters videoElementWidth="100%"></video-filters>
                 </div>
 
