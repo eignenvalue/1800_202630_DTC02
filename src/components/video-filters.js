@@ -57,12 +57,16 @@ class VideoFilters extends HTMLElement {
             video-filters .video-filters-scroller {
                 overflow-x: auto;
                 overflow-y: hidden;
-                scrollbar-width: none;              /* Firefox */
                 -webkit-overflow-scrolling: touch;
                 touch-action: pan-x;                /* horizontal swipes scroll the chips */
-                padding: 0 10px;
+                padding: 0 0 10px 0;
+                margin: 0 10px;
             }
-            video-filters .video-filters-scroller::-webkit-scrollbar { display: none; }
+            video-filters.paused .video-filters-scroller {
+                display: initial;
+            }
+            video-filters .video-filters-scroller::-webkit-scrollbar { background: transparent; height: 4px; }
+            video-filters .video-filters-scroller::-webkit-scrollbar-thumb { background: grey; border-radius: 999px; }
             video-filters .video-filter-off { background: rgba(0, 0, 0, .45); }
             video-filters .video-filters-scroller.dragging { cursor: grabbing; }
         `;
@@ -71,7 +75,7 @@ class VideoFilters extends HTMLElement {
         scroller.className = 'video-filters-scroller';
 
         const list = document.createElement('ul');
-        list.className = 'd-flex flex-row flex-nowrap m-0 p-0 gap-2 list-unstyled';
+        list.className = 'd-flex flex-row flex-nowrap m-0 p-0 gap-2 list-unstyled bg-red-500';
         list.style.width = 'max-content';
 
         for (const filter of this.#filters) {
