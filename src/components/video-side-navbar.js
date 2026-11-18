@@ -96,9 +96,8 @@ class VideoSideNavbar extends HTMLElement {
             case 'share':
                 await this.handleShareAction();
                 break;
-            case 'assignment':
-                console.log('assignment');
-                this.emit('video-assignment-requested');
+            case 'practice':
+                this.emit('video-practice-requested');
                 break;
             case 'quiz':
                 console.log('quiz');

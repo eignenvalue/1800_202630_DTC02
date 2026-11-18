@@ -523,7 +523,7 @@ class ScrollableVideoManager extends HTMLElement {
 
         // filters live inside this element, and their event bubbles
         this.addEventListener('video-filters-change', this.#onFiltersChange);
-        this.addEventListener('video-assignment-requested', this.#onAssignmentRequested);
+        this.addEventListener('video-practice-requested', this.#onAssignmentRequested);
         this.addEventListener('video-quiz-requested', this.#onQuizRequested);
         window.addEventListener('keydown', this.#onKey);
 
@@ -539,7 +539,7 @@ class ScrollableVideoManager extends HTMLElement {
 
     disconnectedCallback() {
         this.removeEventListener('video-filters-change', this.#onFiltersChange);
-        this.removeEventListener('video-assignment-requested', this.#onAssignmentRequested);
+        this.removeEventListener('video-practice-requested', this.#onAssignmentRequested);
         this.removeEventListener('video-quiz-requested', this.#onQuizRequested);
         window.removeEventListener('keydown', this.#onKey);
         this.#resizeObserver?.disconnect();
