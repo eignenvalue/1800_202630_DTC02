@@ -67,7 +67,7 @@ class VideoFilters extends HTMLElement {
                 overflow-y: hidden;
                 -webkit-overflow-scrolling: touch;
                 touch-action: pan-x;                /* horizontal swipes scroll the chips */
-                padding: 0 5px 7px 5px;
+                padding: 0 10px 7px 10px;
             }
             video-filters .video-filters-scroller::-webkit-scrollbar { height: 4px; }
             video-filters .video-filters-scroller::-webkit-scrollbar-track { margin: 0 10px; }
