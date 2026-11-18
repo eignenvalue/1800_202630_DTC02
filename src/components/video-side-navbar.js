@@ -188,8 +188,6 @@ class VideoSideNavbar extends HTMLElement {
     }
 
     render() {
-        const id = encodeURIComponent(this.videoId || '');
-
         this.innerHTML = `
             <nav>
                 <ul class="list-unstyled d-inline-block mb-0">
