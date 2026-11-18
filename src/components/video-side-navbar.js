@@ -201,7 +201,7 @@ class VideoSideNavbar extends HTMLElement {
                         ${this.isLiked ? 'active' : ''}
                         ${this.isLoading ? 'disabled' : ''}
                     ></video-side-navbar-anchor>
-                    <video-side-navbar-anchor action="share" label="Share" icon="bi-share" url="#"></video-side-navbar-anchor>
+                    <video-side-navbar-anchor action="share" label="Share" icon="bi-link" url="#"></video-side-navbar-anchor>
                     <video-side-navbar-anchor action="practice" label="Practice" icon="bi-file-earmark" url="#"></video-side-navbar-anchor>
                     <video-side-navbar-anchor action="quiz" label="Quiz" icon="bi-question" url="#"></video-side-navbar-anchor>
                 </ul>
