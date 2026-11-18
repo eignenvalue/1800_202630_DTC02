@@ -70,7 +70,7 @@ class VideoFilters extends HTMLElement {
                 padding: 0 10px 7px 10px;
             }
             video-filters .video-filters-scroller::-webkit-scrollbar { height: 4px; }
-            video-filters .video-filters-scroller::-webkit-scrollbar-track { margin: 0 10px; }
+            video-filters .video-filters-scroller::-webkit-scrollbar-track { background: #22222225; margin: 0 10px; }
             video-filters .video-filter-off { background-color: rgb(0, 0, 0, 0.2); }
             video-filters .video-filters-scroller.dragging { cursor: grabbing; }
         `;
