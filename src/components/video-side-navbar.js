@@ -100,7 +100,6 @@ class VideoSideNavbar extends HTMLElement {
                 this.emit('video-practice-requested');
                 break;
             case 'quiz':
-                console.log('quiz');
                 this.emit('video-quiz-requested'); // send with no data, use close button on element to close this is just for opening
                 break;
             default:
