@@ -7,7 +7,8 @@ import './video-filters.js';
 import { QuizComponent } from "./quiz-component";
 import { Assignment } from "./assignment";
 
-const VIDEO_PARAM = 'video'; // ?video=<id>  (not "id", which your assignment/quiz pages already use)
+const VIDEO_PARAM = 'videoId';
+const OLD_VIDEO_PARAM = 'video'; // Keep previously shared links working.
 
 class ScrollableVideoManager extends HTMLElement {
 
@@ -159,6 +160,7 @@ class ScrollableVideoManager extends HTMLElement {
         } else {
             url.searchParams.delete(VIDEO_PARAM);
         }
+        url.searchParams.delete(OLD_VIDEO_PARAM);
 
         window.history.replaceState(window.history.state, '', url);
     }
@@ -458,10 +460,13 @@ class ScrollableVideoManager extends HTMLElement {
                  style="max-width: 480px;
                         height: calc(100vh - var(--bottom-nav-height, 64px));
                         height: calc(100dvh - var(--bottom-nav-height, 64px));">
-
-                <div class="position-absolute start-0 end-0"
-                     style="top: 0; z-index: 10;
-                            padding-top: calc(env(safe-area-inset-top, 0px) + 10px);">
+                <div class="position-absolute start-0 end-0" style="
+                        background: linear-gradient(to bottom, rgba(0,0,0,.65), transparent);
+                        text-shadow: 0 1px 3px rgba(0,0,0,.6);
+                        top: 0; 
+                        z-index: 10; 
+                        padding-top: calc(env(safe-area-inset-top, 0px) + 10px);
+                    ">
                     <video-filters videoElementWidth="100%"></video-filters>
                 </div>
 
@@ -496,7 +501,7 @@ class ScrollableVideoManager extends HTMLElement {
             alert.setAttribute('role', 'alert');
             alert.textContent = message;
             this.#stack.replaceChildren(alert);
-            this.#updateUrl(); // removes ?video= when there's nothing to show
+            this.#updateUrl(); // removes ?videoId= when there's nothing to show
             this.#syncPanels(); // closes any panel left open
             return;
         }
@@ -518,7 +523,7 @@ class ScrollableVideoManager extends HTMLElement {
 
         // filters live inside this element, and their event bubbles
         this.addEventListener('video-filters-change', this.#onFiltersChange);
-        this.addEventListener('video-assignment-requested', this.#onAssignmentRequested);
+        this.addEventListener('video-practice-requested', this.#onAssignmentRequested);
         this.addEventListener('video-quiz-requested', this.#onQuizRequested);
         window.addEventListener('keydown', this.#onKey);
 
@@ -526,14 +531,15 @@ class ScrollableVideoManager extends HTMLElement {
         this.#resizeObserver.observe(this.#stack);
         this.#measure();
 
-        // a ?video=<id> in the URL is fetched first and shown first
-        const linkedId = new URLSearchParams(window.location.search).get(VIDEO_PARAM);
+        // A ?videoId=<id> in the URL is fetched first and shown first.
+        const parameters = new URLSearchParams(window.location.search);
+        const linkedId = parameters.get(VIDEO_PARAM) || parameters.get(OLD_VIDEO_PARAM);
         this.#reload(linkedId);
     }
 
     disconnectedCallback() {
         this.removeEventListener('video-filters-change', this.#onFiltersChange);
-        this.removeEventListener('video-assignment-requested', this.#onAssignmentRequested);
+        this.removeEventListener('video-practice-requested', this.#onAssignmentRequested);
         this.removeEventListener('video-quiz-requested', this.#onQuizRequested);
         window.removeEventListener('keydown', this.#onKey);
         this.#resizeObserver?.disconnect();

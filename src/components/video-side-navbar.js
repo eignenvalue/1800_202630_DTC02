@@ -1,4 +1,5 @@
 import { auth, db } from '/src/firebaseConfig.js';
+import { showLoginModal } from './login-modal.js';
 import { onAuthStateChanged } from 'firebase/auth';
 import {
     arrayRemove,
@@ -81,7 +82,7 @@ class VideoSideNavbar extends HTMLElement {
         if (this.isLoading) return;
 
         if (event.detail.action === 'like' && !this.user) {
-            window.alert('Please sign in to like videos.');
+            showLoginModal('Please log in to like this video and save it to your profile.');
             return;
         }
 
@@ -95,12 +96,10 @@ class VideoSideNavbar extends HTMLElement {
             case 'share':
                 await this.handleShareAction();
                 break;
-            case 'assignment':
-                console.log('assignment');
-                this.emit('video-assignment-requested');
+            case 'practice':
+                this.emit('video-practice-requested');
                 break;
             case 'quiz':
-                console.log('quiz');
                 this.emit('video-quiz-requested'); // send with no data, use close button on element to close this is just for opening
                 break;
             default:
@@ -113,10 +112,14 @@ class VideoSideNavbar extends HTMLElement {
 
     async handleShareAction() {
         try {
-            // Build a link to this specific video, even if the address bar has
-            // not finished updating after the user scrolls to a new video.
-            const shareUrl = new URL(window.location.href);
-            shareUrl.searchParams.set('video', this.videoId);
+            // Start with a clean URL so none of the current URL parameters can
+            // accidentally be carried into the copied link.
+            const shareUrl = new URL(window.location.pathname, window.location.origin);
+
+            // Create a new query string containing only the video ID.
+            const shareParameters = new URLSearchParams();
+            shareParameters.set('videoId', this.videoId);
+            shareUrl.search = shareParameters.toString();
 
             // Ask the browser to copy the completed link to the clipboard.
             await navigator.clipboard.writeText(shareUrl.toString());
@@ -133,7 +136,7 @@ class VideoSideNavbar extends HTMLElement {
         if (this.isLoading) return false;
 
         if (!this.user) {
-            window.alert('Please sign in to like videos.');
+            showLoginModal('Please log in to like this video and save it to your profile.');
             return false;
         }
 
@@ -184,22 +187,20 @@ class VideoSideNavbar extends HTMLElement {
     }
 
     render() {
-        const id = encodeURIComponent(this.videoId || '');
-
         this.innerHTML = `
             <nav>
                 <ul class="list-unstyled d-inline-block mb-0">
                     <video-side-navbar-anchor
-                        label="Like"
+                        label=""
                         icon="${this.isLiked ? 'bi-heart-fill' : 'bi-heart'}"
                         action="like"
                         count="${this.likeCount}"
                         ${this.isLiked ? 'active' : ''}
                         ${this.isLoading ? 'disabled' : ''}
                     ></video-side-navbar-anchor>
-                    <video-side-navbar-anchor action="share" label="Share" icon="bi-share" url="#"></video-side-navbar-anchor>
-                    <video-side-navbar-anchor action="assignment" label="Assignment" icon="bi-envelope" url="/assignment.html?id=${id}"></video-side-navbar-anchor>
-                    <video-side-navbar-anchor action="quiz" label="Quiz" icon="bi-question" url="/quiz.html?id=${id}"></video-side-navbar-anchor>
+                    <video-side-navbar-anchor action="share" label="Share" icon="bi-link" url="#"></video-side-navbar-anchor>
+                    <video-side-navbar-anchor action="practice" label="Practice" icon="bi-file-earmark" url="#"></video-side-navbar-anchor>
+                    <video-side-navbar-anchor action="quiz" label="Quiz" icon="bi-question" url="#"></video-side-navbar-anchor>
                 </ul>
             </nav>
         `;

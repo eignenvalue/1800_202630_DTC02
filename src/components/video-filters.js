@@ -16,7 +16,15 @@ class VideoFilters extends HTMLElement {
         result.forEach(item => this.#selected.add(item))
 
         // must match the strings stored in each video's `tags` array
-        this.#filters = ['Science', 'Math', 'Art', 'Technology', 'Graphic Design', 'Programming', 'Engineering'];
+        this.#filters = [
+            { title: 'Science', icon: 'bi-flask' },
+            { title: 'Math', icon: 'bi-calculator' },
+            { title: 'Art', icon: 'bi-palette' },
+            { title: 'Technology', icon: 'bi-cpu' },
+            { title: 'Graphic Design', icon: 'bi-vector-pen' },
+            { title: 'Programming', icon: 'bi-code-slash' },
+            { title: 'Engineering', icon: 'bi-gear' }
+        ];
     }
 
     get selectedFilters() {
@@ -38,7 +46,7 @@ class VideoFilters extends HTMLElement {
         window.history.replaceState({}, '', url);
 
         const isOn = this.#selected.has(name);
-        chip.classList.toggle('bg-primary', isOn);
+        chip.classList.toggle('bg-actual-primary', isOn);
         chip.classList.toggle('video-filter-off', !isOn);
         chip.setAttribute('aria-pressed', String(isOn));
 
@@ -57,13 +65,13 @@ class VideoFilters extends HTMLElement {
             video-filters .video-filters-scroller {
                 overflow-x: auto;
                 overflow-y: hidden;
-                scrollbar-width: none;              /* Firefox */
                 -webkit-overflow-scrolling: touch;
                 touch-action: pan-x;                /* horizontal swipes scroll the chips */
-                padding: 0 10px;
+                padding: 0 10px 7px 10px;
             }
-            video-filters .video-filters-scroller::-webkit-scrollbar { display: none; }
-            video-filters .video-filter-off { background: rgba(0, 0, 0, .45); }
+            video-filters .video-filters-scroller::-webkit-scrollbar { height: 4px; }
+            video-filters .video-filters-scroller::-webkit-scrollbar-track { background: #22222225; margin: 0 10px; }
+            video-filters .video-filter-off { background-color: rgb(0, 0, 0, 0.2); }
             video-filters .video-filters-scroller.dragging { cursor: grabbing; }
         `;
 
@@ -71,21 +79,25 @@ class VideoFilters extends HTMLElement {
         scroller.className = 'video-filters-scroller';
 
         const list = document.createElement('ul');
-        list.className = 'd-flex flex-row flex-nowrap m-0 p-0 gap-2 list-unstyled';
+        list.className = 'd-flex flex-row flex-nowrap m-0 p-0 gap-2 list-unstyled bg-red-500';
         list.style.width = 'max-content';
 
         for (const filter of this.#filters) {
-            const isOn = this.#selected.has(filter);
+            const isOn = this.#selected.has(filter.title);
 
             const li = document.createElement('li');
             const chip = document.createElement('button');
+            const icon = document.createElement('i');
+            icon.classList.add('bi', filter.icon)
+            icon.style.marginRight = '8px';
             chip.type = 'button';
-            chip.dataset.filter = filter;
-            chip.textContent = filter;
+            chip.dataset.filter = filter.title;
+            chip.textContent = filter.title;
             chip.setAttribute('aria-pressed', String(isOn));
-            chip.className = 'border rounded px-3 py-2 text-white user-select-none text-nowrap '
-                + (isOn ? 'bg-primary' : 'video-filter-off');
+            chip.className = 'border-0 px-2 py-1 text-white user-select-none text-nowrap rounded fw-semibold '
+                + (isOn ? 'bg-actual-primary' : 'video-filter-off');
 
+            chip.prepend(icon);
             li.appendChild(chip);
             list.appendChild(li);
         }

@@ -132,11 +132,32 @@ export class VideoContainer extends HTMLElement {
 
         if (!liked) return;
 
-        const heart = this.querySelector('.video-double-tap-heart');
-        if (!heart) return;
+        // [FRONT END] Remove an old animation heart if one is still there.
+        const oldHeart = this.querySelector('.video-double-tap-heart');
+        if (oldHeart) {
+            oldHeart.remove();
+        }
 
-        heart.classList.add('is-visible');
-        setTimeout(() => heart.classList.remove('is-visible'), 700)
+        // [FRONT END] Create the heart only when the like happens.
+        const heart = document.createElement('div');
+        heart.className = 'video-double-tap-heart video-icon-overlay is-visible z-3';
+        heart.setAttribute('aria-hidden', 'true');
+        heart.innerHTML = '<i class="bi bi-heart-fill"></i>';
+
+        const videoWrapper = this.firstElementChild;
+        if (!videoWrapper) return;
+
+        videoWrapper.append(heart);
+
+        // [FRONT END] Remove the heart from the DOM after its animation.
+        heart.addEventListener('animationend', function () {
+            heart.remove();
+        }, { once: true });
+
+        // Fallback cleanup in case the animation is interrupted by scrolling.
+        setTimeout(function () {
+            heart.remove();
+        }, 750);
 
         if (this.#paused) {
             this.playVideo();
@@ -148,10 +169,6 @@ export class VideoContainer extends HTMLElement {
             <div class="position-relative w-100 h-100 overflow-hidden">
 
                 <video-element url="${escapeHtml(this.video_url)}"></video-element>
-
-                <div class="video-double-tap-heart video-icon-overlay z-3" aria-hidden="true">
-                    <i class="bi bi-heart-fill"></i>
-                </div>
 
                 <div class="video-single-tap-pause video-icon-overlay z-2" aria-hidden="true">
                     <i class="bi bi-pause"></i>

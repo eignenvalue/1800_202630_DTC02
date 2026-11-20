@@ -1,5 +1,20 @@
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900;1000&display=swap');
 
+::-webkit-scrollbar {
+  background: transparent;
+  width: 7px;
+  height: 7px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #dc3545;
+  border-radius: 999px;
+}
+
+.bg-actual-primary {
+  background-color: #dc3545;
+}
+
 .width-max-content {
   width: max-content;
 }
@@ -185,21 +200,21 @@ body {
 }
 
 .profile-page back-button button {
-  margin: 0 !important;
-  padding: 0.25rem 0.75rem !important;
-  background-color: transparent !important;
-  border-color: #555 !important;
-  color: #fff !important;
-  font-size: 1.5rem !important;
+  margin: 0;
+  padding: 0.25rem 0.75rem;
+  background-color: transparent;
+  border-color: #555;
+  color: #fff;
+  font-size: 1.5rem;
 }
 
 .profile-page bottom-navbar nav {
-  background-color: #000 !important;
+  background-color: #000;
   border-top: 1px solid #272727;
 }
 
 quiz-component {
-  color: black;
+  color: white;
   font-family: 'Nunito', sans-serif;
   font-weight: bold;
 }
@@ -209,7 +224,7 @@ quiz-component form {
 }
 
 quiz-component .quiz {
-  background-color: hsl(0, 75%, 57%);
+  background-color: #232323;
   padding: 20px;
   border-radius: 10px;
   margin-bottom: 15px;
@@ -217,25 +232,29 @@ quiz-component .quiz {
 }
 
 quiz-component .question {
-  font-size: 40px;
-  font-weight: 1000;
+  font-size: 30px;
+  font-weight: 800;
   margin-bottom: 20px;
 }
 
 quiz-component .close {
-  background-color: #333;
+  background-color: #fe2c55;
   color: white;
   border: none;
   border-radius: 5px;
   padding: 5px 12px;
-  font-size: 20px;
+  font-size: 25px;
+  font-weight: bold;
+
 }
 
 quiz-component .each-quiz {
-  font-size: 20px;
+  font-size: 16px;
 }
 
 .btn {
-  background-color: hsl(0, 75%, 57%);
+  background-color: #fe2c55;
   border: none;
+  font-size: 20px;
+  font-weight: bold;
 }

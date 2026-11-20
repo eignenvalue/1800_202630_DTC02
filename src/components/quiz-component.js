@@ -1,3 +1,9 @@
+import { onAuthReady } from "/src/authentication.js";
+import { showLoginModal } from "./login-modal.js";
+import { db } from "/src/firebaseConfig.js";
+import { doc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
+
 let quizCount = 0;
 
 const escapeHtml = (value) =>
@@ -12,6 +18,9 @@ export class QuizComponent extends HTMLElement {
   #uid = `quiz${quizCount++}`; // unique per instance, used for input names
   #quiz = [];
   #styled = false;
+  #currentUser = undefined;
+  #quizRequested = false;
+  #stopAuthCheck = null;
 
   quizId = null; // the video id; plain data, no longer used for input names
 
@@ -27,31 +36,29 @@ export class QuizComponent extends HTMLElement {
   #render() {
     const questions = this.#quiz;
 
-
-
     const body = questions.length
       ? questions
-        .map((q, qIndex) => {
-          const name = `${this.#uid}-q${qIndex}`;
-          const type = q.type === "checkbox" ? "checkbox" : "radio";
-          const options = (q.possibleAnswers ?? [])
-            .map(
-              (option, i) => `
+          .map((q, qIndex) => {
+            const name = `${this.#uid}-q${qIndex}`;
+            const type = q.type === "checkbox" ? "checkbox" : "radio";
+            const options = (q.possibleAnswers ?? [])
+              .map(
+                (option, i) => `
             <div class="each-quiz form-check">
               <input class="form-check-input" type="${type}" name="${name}" id="${name}-${i}" value="${i}" />
               <label class="form-check-label" for="${name}-${i}">${escapeHtml(option)}</label>
             </div>`,
-            )
-            .join("");
+              )
+              .join("");
 
-          return `
+            return `
             <div class="quiz">
               <h1 class="question">${escapeHtml(q.question)}</h1>
               ${options}
             </div>`;
-        })
-        .join("") +
-      `
+          })
+          .join("") +
+        `
           <div class="text-center">
             <button class="btn btn-primary mt-5" type="submit">Submit</button>
             <p class="score mt-3 fs-4"></p>
@@ -71,10 +78,9 @@ export class QuizComponent extends HTMLElement {
     });
 
     const url = new URL(window.location);
-    if (!url.searchParams.get('quizOpen')) {
-      this.style.display = 'none';
+    if (!url.searchParams.get("quizOpen")) {
+      this.style.display = "none";
     }
-
   }
 
   checkAnswers() {
@@ -94,36 +100,93 @@ export class QuizComponent extends HTMLElement {
     if (scoreEl) {
       if (score == this.#quiz.length) {
         scoreEl.textContent = `You got ${score} out of ${this.#quiz.length} 🎉`;
-      }
-      else {
+      } else {
         scoreEl.textContent = `You got ${score} out of ${this.#quiz.length} !`;
       }
+    }
+    const user = getAuth().currentUser;
+    const videoId = this.quizId || new URL(window.location).searchParams.get("video");
+
+    if (user && videoId) {
+      updateDoc(doc(db, "users", user.uid), {
+        [`completed_quizzes.${videoId}`]: {
+          score: score,
+          total: this.#quiz.length,
+          completedAt: serverTimestamp(),
+        },
+      }).catch((err) => console.error("Could not save quiz grade:", err));
     }
   }
 
   connectedCallback() {
+    this.style.display = "none";
+
     if (!this.#styled) {
-      this.classList.add("position-fixed", "top-0", "start-0", "w-100", "bg-secondary");
+      this.classList.add("position-fixed", "top-0", "start-0", "w-100");
+      this.style.backgroundColor = "Black";
       this.style.height = "calc(100% - 72px)";
       this.style.zIndex = "100";
       this.style.overflowY = "auto";
       this.#styled = true;
     }
+
+    // Check the Firebase login state before opening a requested quiz.
+    this.#stopAuthCheck = onAuthReady((user) => {
+      this.#currentUser = user;
+
+      if (!this.#quizRequested) return;
+
+      if (!user) {
+        showLoginModal("Please log in before starting this quiz.");
+      } else {
+        this.#openQuiz();
+      }
+    });
+
     this.#render(); // renders the empty state and hides, even if quiz was never set
+
+    // A quiz opened from a saved URL must pass the same login check.
+    const url = new URL(window.location);
+    if (url.searchParams.get("quizOpen")) {
+      this.show();
+    }
   }
 
   show() {
+    this.#quizRequested = true;
+
+    // undefined means Firebase is still checking the login state.
+    if (this.#currentUser === undefined) return;
+
+    if (!this.#currentUser) {
+      showLoginModal("Please log in before starting this quiz.");
+      return;
+    }
+
+    this.#openQuiz();
+  }
+
+  #openQuiz() {
     const url = new URL(window.location);
-    url.searchParams.set('quizOpen', 1);
-    window.history.replaceState({}, '', url);
+    url.searchParams.set("quizOpen", 1);
+    window.history.replaceState({}, "", url);
     this.style.display = "block";
   }
 
   hide() {
+    this.#quizRequested = false;
     const url = new URL(window.location);
-    url.searchParams.delete('quizOpen', 1);
-    window.history.replaceState({}, '', url);
+    url.searchParams.delete("quizOpen", 1);
+    window.history.replaceState({}, "", url);
     this.style.display = "none";
+  }
+
+  disconnectedCallback() {
+    if (this.#stopAuthCheck) {
+      this.#stopAuthCheck();
+      this.#stopAuthCheck = null;
+    }
+    this.#currentUser = undefined;
   }
 }
 
