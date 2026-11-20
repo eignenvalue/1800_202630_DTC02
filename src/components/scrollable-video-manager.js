@@ -19,6 +19,7 @@ class ScrollableVideoManager extends HTMLElement {
     #queuePosition = 0;
     #height = 800; // placeholder; replaced by the measured stack height
     #loadError = '';
+    #interacted = 0;
 
     // query state
     #filters = [];
@@ -295,12 +296,15 @@ class ScrollableVideoManager extends HTMLElement {
         this.#nextVideo.stopVideo();
 
         this.#currentVideo.showVideo();
-        this.#currentVideo.playVideo();
+        if (this.#interacted) {
+            this.#currentVideo.playVideo();
+        }
 
         this.#layout(0);
     }
 
     #onPointerDown(event) {
+        this.#interacted = true;
         if (this.#animating || !this.#currentVideo) return;
         if (event.target.closest('button, a, summary, input, video-side-navbar')) return;
 
@@ -378,6 +382,7 @@ class ScrollableVideoManager extends HTMLElement {
     }
 
     #onWheel(event) {
+        this.#interacted = true;
         event.preventDefault();
         if (this.#animating || this.#dragging || !this.#currentVideo) return;
 
