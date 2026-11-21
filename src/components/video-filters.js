@@ -33,13 +33,11 @@ class VideoFilters extends HTMLElement {
     }
 
     dispatchUpdateEvent() {
-        console.log('dispatching');
-        const result = this.dispatchEvent(new CustomEvent('video-filters-change', {
+        this.dispatchEvent(new CustomEvent('video-filters-change', {
             detail: { filters: this.selectedFilters },
             bubbles: true,
             composed: true,
         }));
-        console.log(result);
     }
 
     #toggleFilter(chip) {

@@ -51,7 +51,6 @@ class ScrollableVideoManager extends HTMLElement {
     #resizeObserver = null;
 
     #onFiltersChange = (event) => {
-        console.log(event);
         this.setFilters(event.detail?.filters ?? []);
     }
 
@@ -186,7 +185,6 @@ class ScrollableVideoManager extends HTMLElement {
     }
 
     async #reload(pinnedId = null) {
-        console.log('reload');
         const requestId = ++this.#requestId;
 
         this.#queue = [];
@@ -342,8 +340,6 @@ class ScrollableVideoManager extends HTMLElement {
         if (offset > 0 && !this.#hasLast) offset = 0;
         if (offset < 0 && !this.#hasNext) offset = 0;
         this.#offsetY = offset;
-
-        console.log(this.#offsetY);
 
         if (offset > 0) {
             this.#lastVideo.showVideo();
