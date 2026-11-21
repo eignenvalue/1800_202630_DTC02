@@ -93,21 +93,14 @@ export class VideoContainer extends HTMLElement {
     }
 
     handleTap() {
+        const play = this.querySelector('.pause-icon');
+        if (!play) return;
+
         if (this.#paused) {
             this.playVideo();
-            console.log('played')
-
-            const play = this.querySelector('.pause-icon');
-            if (!play) return;
-
             play.classList.remove('is-visible');
         } else {
             this.pauseVideo();
-            console.log('paused')
-
-            const play = this.querySelector('.pause-icon');
-            if (!play) return;
-
             play.classList.add('is-visible');
         }
     }
@@ -120,6 +113,9 @@ export class VideoContainer extends HTMLElement {
             video.pause();
             video.currentTime = 0;
         });
+        const play = this.querySelector('.pause-icon')
+        if (!play) return;
+        play.classList.remove('is-visible')
     }
 
     async likeFromDoubleTap() {
