@@ -13,7 +13,7 @@ class VideoFilters extends HTMLElement {
 
         const url = new URL(window.location);
         const result = url.searchParams.getAll('filter');
-        result.forEach(item => this.#selected.add(item))
+        result.forEach(item => this.#selected.add(item));
 
         // must match the strings stored in each video's `tags` array
         this.#filters = [
@@ -25,10 +25,21 @@ class VideoFilters extends HTMLElement {
             { title: 'Programming', icon: 'bi-code-slash' },
             { title: 'Engineering', icon: 'bi-gear' }
         ];
+
     }
 
     get selectedFilters() {
         return [...this.#selected];
+    }
+
+    dispatchUpdateEvent() {
+        console.log('dispatching');
+        const result = this.dispatchEvent(new CustomEvent('video-filters-change', {
+            detail: { filters: this.selectedFilters },
+            bubbles: true,
+            composed: true,
+        }));
+        console.log(result);
     }
 
     #toggleFilter(chip) {
@@ -50,11 +61,7 @@ class VideoFilters extends HTMLElement {
         chip.classList.toggle('video-filter-off', !isOn);
         chip.setAttribute('aria-pressed', String(isOn));
 
-        this.dispatchEvent(new CustomEvent('video-filters-change', {
-            detail: { filters: this.selectedFilters },
-            bubbles: true,
-            composed: true,
-        }));
+        this.dispatchUpdateEvent();
     }
 
     render() {
@@ -149,10 +156,12 @@ class VideoFilters extends HTMLElement {
             event.preventDefault();
             scroller.scrollLeft += event.deltaY;
         }, { passive: false });
+
     }
 
     connectedCallback() {
         this.render();
+        this.dispatchUpdateEvent();
     }
 }
 

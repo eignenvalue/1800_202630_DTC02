@@ -50,13 +50,20 @@ class ScrollableVideoManager extends HTMLElement {
 
     #resizeObserver = null;
 
-    #onFiltersChange = (event) => this.setFilters(event.detail?.filters ?? []);
+    #onFiltersChange = (event) => {
+        console.log(event);
+        this.setFilters(event.detail?.filters ?? []);
+    }
 
     #onAssignmentRequested = () => {
+        // pause the video here
+        // play video on close...whereever that is
         this.#assignmentDOM.show();
 
     }
     #onQuizRequested = () => {
+        // pause the video here
+        // play video on close...whereever that is
         this.#quizDOM.show();
     }
 
@@ -179,6 +186,7 @@ class ScrollableVideoManager extends HTMLElement {
     }
 
     async #reload(pinnedId = null) {
+        console.log('reload');
         const requestId = ++this.#requestId;
 
         this.#queue = [];
@@ -334,6 +342,8 @@ class ScrollableVideoManager extends HTMLElement {
         if (offset > 0 && !this.#hasLast) offset = 0;
         if (offset < 0 && !this.#hasNext) offset = 0;
         this.#offsetY = offset;
+
+        console.log(this.#offsetY);
 
         if (offset > 0) {
             this.#lastVideo.showVideo();
@@ -542,14 +552,14 @@ class ScrollableVideoManager extends HTMLElement {
     }
 
     connectedCallback() {
-        if (!this.#stack) this.#buildShell();
-        if (!this.#assignmentDOM) this.#buildPanels();
-
         // filters live inside this element, and their event bubbles
         this.addEventListener('video-filters-change', this.#onFiltersChange);
         this.addEventListener('video-practice-requested', this.#onAssignmentRequested);
         this.addEventListener('video-quiz-requested', this.#onQuizRequested);
         window.addEventListener('keydown', this.#onKey);
+
+        if (!this.#stack) this.#buildShell();
+        if (!this.#assignmentDOM) this.#buildPanels();
 
         this.#resizeObserver = new ResizeObserver(() => this.#measure());
         this.#resizeObserver.observe(this.#stack);
