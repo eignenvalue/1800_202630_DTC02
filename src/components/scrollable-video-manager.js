@@ -406,14 +406,15 @@ class ScrollableVideoManager extends HTMLElement {
 
     #commit(direction) {
         this.#animating = true;
+        void this.#stack.offsetHeight;
         this.#layout(-direction * this.#height, true);
-
         const requestId = this.#requestId;
         setTimeout(() => {
             if (requestId !== this.#requestId) {
                 this.#animating = false;
                 return;
             }
+
             if (direction === 1) {
                 this.#rotateForward();
             } else {
