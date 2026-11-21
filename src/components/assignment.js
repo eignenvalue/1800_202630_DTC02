@@ -45,7 +45,9 @@ export class Assignment extends HTMLElement {
     this.style.overflowY = "auto";
     this.style.paddingBottom = "70px";
     this.#content = this.querySelector("[data-content]");
-    this.querySelector(".close").onclick = () => this.hide();
+    this.querySelector(".close").onclick = () => {
+      this.hide();
+    }
   }
 
   #renderContent() {

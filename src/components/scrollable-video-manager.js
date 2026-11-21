@@ -60,8 +60,6 @@ class ScrollableVideoManager extends HTMLElement {
 
     }
     #onQuizRequested = () => {
-        // pause the video here
-        // play video on close...whereever that is
         this.#currentVideo.pauseVideo();
         this.#quizDOM.show();
     }
@@ -315,7 +313,7 @@ class ScrollableVideoManager extends HTMLElement {
 
         this.#currentVideo.showVideo();
         if (this.#getInteracted()) {
-            this.#currentVideo.playVideo();
+            this.#playCurrentVideo();
         }
 
         this.#layout(0);
@@ -545,6 +543,10 @@ class ScrollableVideoManager extends HTMLElement {
         this.#settle();
         this.#updateUrl();
         this.#syncPanels();
+    }
+
+    #playCurrentVideo(event) {
+        this.#currentVideo.playVideo();
     }
 
     connectedCallback() {
