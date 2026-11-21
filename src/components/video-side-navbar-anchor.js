@@ -35,18 +35,20 @@ class VideoSideNavbarAnchor extends HTMLElement {
         this.innerHTML = `
             <li class="mb-3">
                 ${this.action
-                    ? `<button type="button"
+                ? `<button type="button"
                             class="video-nav-action d-flex flex-column align-items-center text-center text-white text-decoration-none bg-transparent border-0 p-0" 
                             aria-label="${this.label}"
                             aria-pressed="${this.active}"
                             ${this.disabled ? 'disabled aria-busy="true"' : ''}>${content}</button>`
-                    : `<a class="d-flex flex-column text-center text-white text-decoration-none"
+                : `<a class="d-flex flex-column text-center text-white text-decoration-none"
                             href="${this.url || '#'}" rel="noreferrer noopener">${content}</a>`
-                }
+            }
             </li>
         `;
 
-        this.querySelector('button')?.addEventListener('click', () => {
+        this.querySelector('button')?.addEventListener('click', (event) => {
+            event.preventDefault();
+
             this.dispatchEvent(new CustomEvent('video-nav-action', {
                 bubbles: true,
                 detail: { action: this.action },

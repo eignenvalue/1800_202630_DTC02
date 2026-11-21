@@ -79,6 +79,7 @@ class VideoSideNavbar extends HTMLElement {
 
     async handleNavAction(event) {
         event.preventDefault();
+
         if (this.isLoading) return;
 
         if (event.detail.action === 'like' && !this.user) {

@@ -54,15 +54,15 @@ class ScrollableVideoManager extends HTMLElement {
         this.setFilters(event.detail?.filters ?? []);
     }
 
-    #onAssignmentRequested = () => {
-        // pause the video here
-        // play video on close...whereever that is
+    #onAssignmentRequested = (event) => {
+        this.#currentVideo.pauseVideo();
         this.#assignmentDOM.show();
 
     }
     #onQuizRequested = () => {
         // pause the video here
         // play video on close...whereever that is
+        this.#currentVideo.pauseVideo();
         this.#quizDOM.show();
     }
 
