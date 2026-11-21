@@ -15,11 +15,6 @@ class BottomNavbar extends HTMLElement {
                         <small>Home</small>
                     </a>
 
-                    <a href="/messages" class="nav-link flex-fill text-center text-white">
-                        <i class="bi bi-chat-dots fs-4 d-block"></i>
-                        <small>Messages</small>
-                    </a>
-
                     <a href="/profile" class="nav-link flex-fill text-center text-white">
                         <i class="bi bi-person-circle fs-4 d-block"></i>
                         <small>Profile</small>
