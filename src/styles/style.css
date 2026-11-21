@@ -66,6 +66,23 @@
   animation: video-heart-pop 700ms ease-out;
 }
 
+.pause-icon {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  color: #dc3545;
+  font-size: clamp(6rem, 30vw, 10rem);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  opacity: 1;
+  filter: drop-shadow(0 0.2rem 0.35rem rgb(0 0 0 / 45%));
+}
+
+.pause-icon.is-visible {
+  display: flex;
+}
+
 @keyframes video-heart-pop {
   0% {
     opacity: 0;

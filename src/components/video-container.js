@@ -95,24 +95,20 @@ export class VideoContainer extends HTMLElement {
     handleTap() {
         if (this.#paused) {
             this.playVideo();
+            console.log('played')
 
-            const play = this.querySelector('.video-single-tap-play');
+            const play = this.querySelector('.pause-icon');
             if (!play) return;
 
             play.classList.remove('is-visible');
-            void play.offsetWidth;
-            play.classList.add('is-visible');
-            setTimeout(() => play.classList.remove('is-visible'), 700)
         } else {
             this.pauseVideo();
+            console.log('paused')
 
-            const pause = this.querySelector('.video-single-tap-pause');
-            if (!pause) return;
+            const play = this.querySelector('.pause-icon');
+            if (!play) return;
 
-            pause.classList.remove('is-visible');
-            void pause.offsetWidth;
-            pause.classList.add('is-visible');
-            setTimeout(() => pause.classList.remove('is-visible'), 700)
+            play.classList.add('is-visible');
         }
     }
 
@@ -141,7 +137,6 @@ export class VideoContainer extends HTMLElement {
         // [FRONT END] Create the heart only when the like happens.
         const heart = document.createElement('div');
         heart.className = 'video-double-tap-heart video-icon-overlay is-visible z-3';
-        heart.setAttribute('aria-hidden', 'true');
         heart.innerHTML = '<i class="bi bi-heart-fill"></i>';
 
         const videoWrapper = this.firstElementChild;
@@ -159,9 +154,7 @@ export class VideoContainer extends HTMLElement {
             heart.remove();
         }, 750);
 
-        if (this.#paused) {
-            this.playVideo();
-        }
+        this.handleTap();
     }
 
     render() {
@@ -170,11 +163,7 @@ export class VideoContainer extends HTMLElement {
 
                 <video-element url="${escapeHtml(this.video_url)}"></video-element>
 
-                <div class="video-single-tap-pause video-icon-overlay z-2" aria-hidden="true">
-                    <i class="bi bi-pause"></i>
-                </div>
-
-                <div class="video-single-tap-play video-icon-overlay z-1" aria-hidden="true">
+                <div class="pause-icon is-visible">
                     <i class="bi bi-play"></i>
                 </div>
 
