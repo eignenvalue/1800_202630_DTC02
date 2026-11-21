@@ -80,8 +80,16 @@ class ScrollableVideoManager extends HTMLElement {
         super();
     }
 
+    #setInteracted(value) {
+        this.#interacted = value;
+    }
+
+    #getInteracted() {
+        return this.#interacted;
+    }
+
     goNext() {
-        this.#interacted = true;
+        this.#setInteracted(true);
 
         if (this.#animating || this.#dragging || !this.#currentVideo) return;
 
@@ -92,7 +100,7 @@ class ScrollableVideoManager extends HTMLElement {
     }
 
     goPrevious() {
-        this.#interacted = true;
+        this.#setInteracted(true);
 
         if (this.#animating || this.#dragging || !this.#currentVideo) return;
 
@@ -300,7 +308,7 @@ class ScrollableVideoManager extends HTMLElement {
         this.#nextVideo.stopVideo();
 
         this.#currentVideo.showVideo();
-        if (this.#interacted) {
+        if (this.#getInteracted()) {
             this.#currentVideo.playVideo();
         }
 
@@ -308,7 +316,7 @@ class ScrollableVideoManager extends HTMLElement {
     }
 
     #onPointerDown(event) {
-        this.#interacted = true;
+        this.#setInteracted(true);
         if (this.#animating || !this.#currentVideo) return;
         if (event.target.closest('button, a, summary, input, video-side-navbar')) return;
 
@@ -386,7 +394,7 @@ class ScrollableVideoManager extends HTMLElement {
     }
 
     #onWheel(event) {
-        this.#interacted = true;
+        this.#setInteracted(true);
         event.preventDefault();
         if (this.#animating || this.#dragging || !this.#currentVideo) return;
 
