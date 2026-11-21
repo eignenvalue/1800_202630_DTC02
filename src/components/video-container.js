@@ -93,6 +93,9 @@ export class VideoContainer extends HTMLElement {
         this.#withVideo(video => {
             video.pause();
         });
+        const play = this.querySelector('.pause-icon')
+        if (!play) return;
+        play.classList.add('is-visible')
     }
 
     handleTap() {
@@ -101,12 +104,11 @@ export class VideoContainer extends HTMLElement {
 
         if (this.#paused) {
             this.playVideo();
-            play.classList.remove('is-visible');
         } else {
             this.pauseVideo();
             play.classList.add('is-visible');
         }
-        
+
     }
 
     // Pause and rewind so it starts from the beginning next time it's shown
