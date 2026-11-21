@@ -406,7 +406,6 @@ class ScrollableVideoManager extends HTMLElement {
 
     #commit(direction) {
         this.#animating = true;
-        void this.#stack.offsetHeight; // flush styles so a just-shown video still animates
         this.#layout(-direction * this.#height, true);
 
         const requestId = this.#requestId;
