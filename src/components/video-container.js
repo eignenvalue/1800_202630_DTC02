@@ -83,6 +83,9 @@ export class VideoContainer extends HTMLElement {
             if (!this.#active) return; // moved out of view while waiting
             video.play().catch(error => console.warn('Could not autoplay video:', error));
         });
+        const play = this.querySelector('.pause-icon')
+        if (!play) return;
+        play.classList.remove('is-visible')
     }
 
     pauseVideo() {
