@@ -26,7 +26,7 @@ if (upButton) {
   });
 }
 
-if(downButton) {
+if (downButton) {
   downButton.addEventListener("click", () => {
     manager.goNext();
   });

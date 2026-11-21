@@ -81,6 +81,8 @@ class ScrollableVideoManager extends HTMLElement {
     }
 
     goNext() {
+        this.#interacted = true;
+
         if (this.#animating || this.#dragging || !this.#currentVideo) return;
 
         if (this.#hasNext) {
@@ -90,6 +92,8 @@ class ScrollableVideoManager extends HTMLElement {
     }
 
     goPrevious() {
+        this.#interacted = true;
+
         if (this.#animating || this.#dragging || !this.#currentVideo) return;
 
         if (this.#hasLast) {
