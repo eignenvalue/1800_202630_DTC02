@@ -19,7 +19,7 @@ class ScrollableVideoManager extends HTMLElement {
     #queuePosition = 0;
     #height = 800; // placeholder; replaced by the measured stack height
     #loadError = '';
-    #interacted = 0;
+    #interacted = false;
 
     // query state
     #filters = [];

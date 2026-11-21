@@ -106,6 +106,7 @@ export class VideoContainer extends HTMLElement {
             this.pauseVideo();
             play.classList.add('is-visible');
         }
+        
     }
 
     // Pause and rewind so it starts from the beginning next time it's shown
