@@ -1,6 +1,6 @@
 class VideoSideNavbarAnchor extends HTMLElement {
     static get observedAttributes() {
-        return ['icon', 'label', 'url', 'action', 'active', 'disabled', 'count'];
+        return ['icon', 'label', 'url', 'action', 'active', 'disabled', 'count', 'badge'];
     }
 
     get icon() { return this.getAttribute('icon') || 'bi-0-circle-fill'; }
@@ -10,6 +10,7 @@ class VideoSideNavbarAnchor extends HTMLElement {
     get active() { return this.hasAttribute('active'); }
     get disabled() { return this.hasAttribute('disabled'); }
     get count() { return this.getAttribute('count'); }
+    get badge() { return this.getAttribute('badge'); }
 
     attributeChangedCallback(name, oldValue, newValue) {
         if (oldValue !== newValue && this.isConnected) {
@@ -27,7 +28,10 @@ class VideoSideNavbarAnchor extends HTMLElement {
             ? ''
             : `<span class="video-nav-count" aria-label="${this.count} likes">${this.count}</span>`;
         const content = `
+        <span class="position-relative">
             <i class="${iconClasses}" aria-hidden="true"></i>
+            ${this.badge ? `<span class="position-absolute top-0 start-100 translate-middle">${this.badge}</span>` : ''}
+            </span>
             ${count}
             <span>${this.label}</span>
         `;
@@ -58,3 +62,4 @@ class VideoSideNavbarAnchor extends HTMLElement {
 }
 
 customElements.define('video-side-navbar-anchor', VideoSideNavbarAnchor);
+ 
