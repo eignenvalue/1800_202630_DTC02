@@ -20,7 +20,7 @@ export class Assignment extends HTMLElement {
     const url = new URL(window.location);
     if (!url.searchParams.get("assignmentOpen")) {
       this.style.display = "none";
-    }
+    };
     this.innerHTML = `
             <style>
                 assignment-element strong { font-weight: 800; }

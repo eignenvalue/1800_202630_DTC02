@@ -15,6 +15,7 @@ class VideoSideNavbar extends HTMLElement {
         super();
         this.user = null;
         this.isLiked = false;
+        this.quizDone = false;
         this.likeCount = 0;
         this.isLoading = true;
         this.unsubscribeFromAuth = null;
@@ -37,6 +38,7 @@ class VideoSideNavbar extends HTMLElement {
         // Only re-render after the element is in the DOM
         if (oldValue !== newValue && this.isConnected) {
             this.loadLikeState();
+            this.loadQuizState();
         }
     }
 
@@ -186,6 +188,23 @@ class VideoSideNavbar extends HTMLElement {
             return false;
         }
     }
+    async loadQuizState() {
+        if (!this.user || !this.videoId) {
+            this.quizDone = false;
+            this.render();
+            return;
+        }
+        try {
+            const userSnapshot = await getDoc(doc(db, 'users', this.user.uid));
+            const completed = userSnapshot.exists() ? userSnapshot.data().completed_quizzes : null;
+            this.quizDone = Boolean(completed && completed[this.videoId]);
+        }
+        catch (error) {
+            console.error('Could not load the quiz state:', error);
+            this.quizDone = false;
+        }
+        this.render();
+    }
 
     render() {
         this.innerHTML = `
@@ -201,11 +220,11 @@ class VideoSideNavbar extends HTMLElement {
                     ></video-side-navbar-anchor>
                     <video-side-navbar-anchor action="share" label="Share" icon="bi-link" url="#"></video-side-navbar-anchor>
                     <video-side-navbar-anchor action="practice" label="Practice" icon="bi-file-earmark" url="#"></video-side-navbar-anchor>
-                    <video-side-navbar-anchor action="quiz" label="Quiz" icon="bi-question" url="#"></video-side-navbar-anchor>
+                    <video-side-navbar-anchor action="quiz" label="Quiz" icon="bi-question" url="#" ${this.quizDone ? 'badge="✅"' : ''}></video-side-navbar-anchor>
                 </ul>
             </nav>
         `;
-    }
+    } 
 
     connectedCallback() {
         this.addEventListener('video-nav-action', this.handleNavAction);
@@ -214,6 +233,7 @@ class VideoSideNavbar extends HTMLElement {
         this.unsubscribeFromAuth = onAuthStateChanged(auth, (user) => {
             this.user = user;
             this.loadLikeState();
+            this.loadQuizState();
         });
     }
 
