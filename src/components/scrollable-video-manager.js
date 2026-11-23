@@ -422,7 +422,7 @@ class ScrollableVideoManager extends HTMLElement {
 
     #flushStyles() {
         // Reading a layout property forces a synchronous style/layout recalculation.
-        void this.#stack.offsetHeight;
+        void this.#stack.offsetWidth;
     }
 
     #commit(direction) {
