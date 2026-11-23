@@ -420,16 +420,8 @@ class ScrollableVideoManager extends HTMLElement {
         }, this.#animationMs);
     }
 
-    #flushStyles() {
-        // Reading a layout property forces a synchronous style/layout recalculation.
-        void this.#stack.offsetHeight;
-    }
-
     #commit(direction) {
         this.#animating = true;
-
-        this.#flushStyles();
-
         this.#layout(-direction * this.#height, true);
         const requestId = this.#requestId;
         setTimeout(() => {
