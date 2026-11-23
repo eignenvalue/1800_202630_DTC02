@@ -1,4 +1,5 @@
 import { onAuthReady, logoutUser } from '/src/authentication.js';
+import { showLoginModal } from '/src/components/login-modal.js';
 import { db } from '/src/firebaseConfig.js';
 import { collection, getDocs, query, where, startAfter, limit } from 'firebase/firestore';
 
@@ -70,7 +71,8 @@ async function displayLikedVideosDynamically() {
 // Run once Firebase knows who is logged in.
 onAuthReady(async function (user) {
     if (!user) {
-        window.location.href = 'login.html';
+        document.getElementById('saved-likes-status').textContent = 'Sign in to see liked videos.';
+        showLoginModal('Please log in to view your profile.');
     } else {
         currentUser = user;
         document.getElementById('profile-name').textContent = user.displayName || 'Your Profile';
@@ -78,6 +80,7 @@ onAuthReady(async function (user) {
 
         // Connect the logout button to the Firebase logout function.
         const logoutButton = document.getElementById('logout-button');
+        logoutButton.classList.remove('d-none');
         logoutButton.addEventListener('click', logoutUser);
 
         observer = new IntersectionObserver(entries => {

@@ -1,4 +1,4 @@
-import { loginUser, authErrorMessage } from '/src/authentication.js';
+import { loginUser, signupUser, authErrorMessage } from '/src/authentication.js';
 
 class LoginModal extends HTMLElement {
     connectedCallback() {
@@ -18,27 +18,35 @@ class LoginModal extends HTMLElement {
             </div>`;
         this.querySelector('.login-message').textContent = message;
         this.querySelector('.close-login').onclick = () => this.hide();
-        this.querySelector('.show-login').onclick = () => this.showLoginForm();
+        this.querySelector('.show-login').onclick = () => this.showAuthForm();
     }
 
-    showLoginForm() {
+    showAuthForm(signup = false) {
         this.firstElementChild.innerHTML = `
             <form>
                 <button class="btn text-white position-absolute top-0 end-0 close-login" type="button" aria-label="Close">✕</button>
-                <h2 class="h4 mb-3">Log in</h2>
+                <h2 class="h4 mb-3">${signup ? 'Sign up' : 'Log in'}</h2>
                 <p class="login-error text-danger"></p>
+                ${signup ? '<input class="form-control mb-3" name="name" placeholder="Name" required>' : ''}
                 <input class="form-control mb-3" name="email" type="email" placeholder="Email" required>
                 <input class="form-control mb-3" name="password" type="password" placeholder="Password" required>
-                <button class="btn text-white w-100" style="background:#fe2c55" type="submit">Log in</button>
-                <a class="d-block text-center mt-3" href="/login.html">Create an account</a>
+                <button class="btn text-white w-100" style="background:#fe2c55" type="submit">${signup ? 'Create account' : 'Log in'}</button>
+                <button class="btn btn-link w-100 mt-2 toggle-auth" type="button">${signup ? 'Already have an account? Log in' : 'Need an account? Sign up'}</button>
             </form>`;
 
         this.querySelector('.close-login').onclick = () => this.hide();
+        this.querySelector('.toggle-auth').onclick = () => this.showAuthForm(!signup);
         this.querySelector('form').onsubmit = async (event) => {
             event.preventDefault();
             const form = event.target;
             try {
-                await loginUser(form.email.value.trim(), form.password.value);
+                const email = form.elements.email.value.trim();
+                const password = form.elements.password.value;
+                if (signup) {
+                    await signupUser(form.elements.name.value.trim(), email, password);
+                } else {
+                    await loginUser(email, password);
+                }
                 this.hide();
             } catch (error) {
                 this.querySelector('.login-error').textContent = authErrorMessage(error);
