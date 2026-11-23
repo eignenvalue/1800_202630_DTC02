@@ -1,4 +1,5 @@
 import "bootstrap-icons/font/bootstrap-icons.css";
+import { navigationItems, isCurrentPage } from './navigation-items.js';
 
 class BottomNavbar extends HTMLElement {
     #observer = null;
@@ -10,15 +11,13 @@ class BottomNavbar extends HTMLElement {
                  aria-label="Main navigation">
                 <div class="container-fluid d-flex justify-content-around flex-nowrap px-0"
                      style="max-width: 480px;">
-                    <a href="/" class="nav-link flex-fill text-center text-white">
-                        <i class="bi bi-house-fill fs-4 d-block"></i>
-                        <small>Home</small>
-                    </a>
-
-                    <a href="/profile" class="nav-link flex-fill text-center text-white">
-                        <i class="bi bi-person-circle fs-4 d-block"></i>
-                        <small>Profile</small>
-                    </a>
+                    ${navigationItems.map(item => `
+                        <a href="${item.href}"
+                           class="nav-link flex-fill text-center text-white ${isCurrentPage(item.href) ? 'fw-bold' : ''}"
+                           ${isCurrentPage(item.href) ? 'aria-current="page"' : ''}>
+                            <i class="bi ${item.icon} fs-4 d-block"></i>
+                            <small>${item.label}</small>
+                        </a>`).join('')}
                 </div>
             </nav>
         `;
