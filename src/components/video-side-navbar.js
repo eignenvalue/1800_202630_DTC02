@@ -56,11 +56,15 @@ class VideoSideNavbar extends HTMLElement {
             }
 
             const video = videoSnapshot.data();
-            const likedBy = Array.isArray(video.liked_by) ? video.liked_by : [];
-            this.isLiked = Boolean(this.user && likedBy.includes(this.user.uid));
+            let likedVideos = [];
+            if (this.user) {
+                const userSnapshot = await getDoc(doc(db, 'users', this.user.uid));
+                likedVideos = userSnapshot.data()?.liked_videos || [];
+            }
+            this.isLiked = likedVideos.includes(this.videoId);
             this.likeCount = Number.isInteger(video.like_count)
                 ? video.like_count
-                : likedBy.length;
+                : 0;
         } catch (error) {
             console.error('Could not load the video like state:', error);
             this.isLiked = false;
@@ -156,30 +160,17 @@ class VideoSideNavbar extends HTMLElement {
 
     async handleLikeAction() {
         try {
-            // The Firestore address of the current video.
             const videoRef = doc(db, 'videos', this.videoId);
+            const userRef = doc(db, 'users', this.user.uid);
+            const change = this.isLiked ? -1 : 1;
 
-            if (this.isLiked) {
-                // Filled heart: remove this user's ID from the video.
-                await setDoc(videoRef, {
-                    liked_by: arrayRemove(this.user.uid),
-                    like_count: increment(-1),
-                }, { merge: true });
+            await setDoc(userRef, {
+                liked_videos: this.isLiked ? arrayRemove(this.videoId) : arrayUnion(this.videoId),
+            }, { merge: true });
+            await setDoc(videoRef, { like_count: increment(change) }, { merge: true });
 
-                // Update the front end after Firestore saves successfully.
-                this.isLiked = false;
-                this.likeCount = Math.max(0, this.likeCount - 1);
-            } else {
-                // Empty heart: add this user's ID to the video.
-                await setDoc(videoRef, {
-                    liked_by: arrayUnion(this.user.uid),
-                    like_count: increment(1),
-                }, { merge: true });
-
-                // Update the front end after Firestore saves successfully.
-                this.isLiked = true;
-                this.likeCount += 1;
-            }
+            this.isLiked = !this.isLiked;
+            this.likeCount = Math.max(0, this.likeCount + change);
 
             return true;
         } catch (error) {

@@ -64,7 +64,8 @@ export async function signupUser(name, email, password) {
     follow_count: 0,
     following: [],
     following_count: 0,
-    completed_quizzes:[]
+    completed_quizzes:[],
+    liked_videos: []
   });
   return userCredential.user;
 }
