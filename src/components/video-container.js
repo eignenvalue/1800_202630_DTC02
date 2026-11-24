@@ -18,7 +18,6 @@ export class VideoContainer extends HTMLElement {
         created_at = "",
         description = "",
         like_count = 0,
-        liked_by = 0,
         quiz = [],
         tags = [],
         title = "",
@@ -35,7 +34,6 @@ export class VideoContainer extends HTMLElement {
         this.createdAt = created_at;
         this.description = description;
         this.likeCount = like_count;
-        this.likedBy = liked_by;
         this.quiz = quiz;
         this.tags = tags;
         this.title = title;

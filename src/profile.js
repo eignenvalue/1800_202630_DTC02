@@ -1,90 +1,45 @@
 import { onAuthReady, logoutUser } from '/src/authentication.js';
+import { showLoginModal } from '/src/components/login-modal.js';
 import { db } from '/src/firebaseConfig.js';
-import { collection, getDocs, query, where, startAfter, limit } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 
-let currentUser = null;
-let lastVisible = null;
-let isLoading = false;
-let noMoreVideos = false;
-let likedVideoCount = 0;
-let observer = null;
+async function displayLikedVideosDynamically(user) {
+    const userSnapshot = await getDoc(doc(db, 'users', user.uid));
+    const likedVideoIds = userSnapshot.data()?.liked_videos || [];
+    const cardTemplate = document.getElementById('videoCardTemplate');
+    const status = document.getElementById('saved-likes-status');
 
-async function displayLikedVideosDynamically() {
-    if (isLoading || noMoreVideos) return;
-    isLoading = true;
-    // Reference to the videos collection.
-    const videosRef = collection(db, 'videos');
+    for (const videoId of likedVideoIds) {
+        const videoSnapshot = await getDoc(doc(db, 'videos', videoId));
+        if (!videoSnapshot.exists()) continue;
 
-    // Get the card template from the front end.
-    let cardTemplate = document.getElementById('videoCardTemplate');
-
-    let q;
-    if (lastVisible) {
-        q = query(videosRef, where('liked_by', 'array-contains', currentUser.uid), startAfter(lastVisible), limit(2));
-    } else{
-        q = query(videosRef, where('liked_by', 'array-contains', currentUser.uid), limit(2))
+        const video = videoSnapshot.data();
+        const newcard = cardTemplate.content.cloneNode(true);
+        newcard.querySelector('.card-title').textContent = video.title || 'Untitled video';
+        newcard.querySelector('.card-text').textContent = video.username || 'Unknown creator';
+        newcard.querySelector('.card-likes').textContent = video.like_count || 0;
+        newcard.querySelector('.card-image').src = `/videos/${video.video_url}`;
+        newcard.querySelector('.read-more').href = `video-side-navbar.html?videoId=${videoId}`;
+        document.getElementById('saved-likes-grid').appendChild(newcard);
     }
-    // Read the videos collection.
-    const querySnapShot = await getDocs(q);
 
-    // Loop through every video, just like displayHikesDynamically().
-    querySnapShot.forEach(doc => {
-        const thisVideo = doc.data();
-
-        // Only display videos liked by the logged-in user.
-            let newcard = cardTemplate.content.cloneNode(true);
-
-            // Populate the copied template with this video's data.
-            newcard.querySelector('.card-title').textContent = thisVideo.title || 'Untitled video';
-            newcard.querySelector('.card-text').textContent = thisVideo.username || 'Unknown creator';
-            newcard.querySelector('.card-likes').textContent = thisVideo.like_count || 0;
-            newcard.querySelector('.card-image').src = `/videos/${thisVideo.video_url}`;
-
-            // Add the link with the Firestore document ID.
-            newcard.querySelector('.read-more').href = `video-side-navbar.html?videoId=${doc.id}`;
-
-            // Attach the completed card to the profile page.
-            document.getElementById('saved-likes-grid').appendChild(newcard);
-            likedVideoCount++;
-        
-    });
-    if (querySnapShot.docs.length > 0){
-        lastVisible = querySnapShot.docs[querySnapShot.docs.length -1];
-    }
-    if (querySnapShot.docs.length < 2) {
-        noMoreVideos = true;
-    }
-    if (likedVideoCount == 0) {
-        document.getElementById('saved-likes-status').textContent = 'You have not liked any videos yet.';
-    } else {
-        document.getElementById('saved-likes-status').style.display = 'none';
-    }
-    isLoading = false;
-    if (!noMoreVideos) {
-        const sential = document.getElementById('saved-likes-sentinel');
-        observer.unobserve(sential);
-        observer.observe(sential);
-    }
+    status.textContent = likedVideoIds.length ? '' : 'You have not liked any videos yet.';
+    status.style.display = likedVideoIds.length ? 'none' : 'block';
 }
 
 // Run once Firebase knows who is logged in.
 onAuthReady(async function (user) {
     if (!user) {
-        window.location.href = 'login.html';
+        document.getElementById('saved-likes-status').textContent = 'Sign in to see liked videos.';
+        showLoginModal('Please log in to view your profile.');
     } else {
-        currentUser = user;
         document.getElementById('profile-name').textContent = user.displayName || 'Your Profile';
         document.getElementById('profile-email').textContent = user.email || '';
 
         // Connect the logout button to the Firebase logout function.
         const logoutButton = document.getElementById('logout-button');
-        logoutButton.addEventListener('click', logoutUser);
-
-        observer = new IntersectionObserver(entries => {
-            if (entries[0].isIntersecting){
-                displayLikedVideosDynamically();
-            }
-        });
-        observer.observe(document.getElementById('saved-likes-sentinel'));
+        logoutButton.classList.remove('d-none');
+        logoutButton.onclick = logoutUser;
+        await displayLikedVideosDynamically(user);
     }
 });

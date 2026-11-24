@@ -1,4 +1,5 @@
 import { db } from '/src/firebaseConfig.js';
+import { onAuthReady } from '/src/authentication.js';
 import {
     collection, getDocs, query, where, limit, startAfter, doc, getDoc
 } from 'firebase/firestore';
@@ -6,6 +7,7 @@ import { VideoContainer } from './video-container.js';
 import './video-filters.js';
 import { QuizComponent } from "./quiz-component";
 import { Assignment } from "./assignment";
+import { showLoginModal } from './login-modal.js';
 
 const VIDEO_PARAM = 'videoId';
 const OLD_VIDEO_PARAM = 'video'; // Keep previously shared links working.
@@ -49,6 +51,8 @@ class ScrollableVideoManager extends HTMLElement {
     #maxQueueSize = 100;
 
     #resizeObserver = null;
+    #stopAuthCheck = null;
+    #checkedAuth = false;
 
     #onFiltersChange = (event) => {
         this.setFilters(event.detail?.filters ?? []);
@@ -563,6 +567,12 @@ class ScrollableVideoManager extends HTMLElement {
         this.#resizeObserver.observe(this.#stack);
         this.#measure();
 
+        this.#stopAuthCheck = onAuthReady((user) => {
+            if (this.#checkedAuth) return;
+            this.#checkedAuth = true;
+            if (!user) showLoginModal('Log in or sign up to save your likes and quiz progress, or choose Not now to keep watching.');
+        });
+
         // A ?videoId=<id> in the URL is fetched first and shown first.
         const parameters = new URLSearchParams(window.location.search);
         const linkedId = parameters.get(VIDEO_PARAM) || parameters.get(OLD_VIDEO_PARAM);
@@ -575,6 +585,7 @@ class ScrollableVideoManager extends HTMLElement {
         this.removeEventListener('video-quiz-requested', this.#onQuizRequested);
         window.removeEventListener('keydown', this.#onKey);
         this.#resizeObserver?.disconnect();
+        this.#stopAuthCheck?.();
 
         this.#assignmentDOM?.remove();
         this.#quizDOM?.remove();
