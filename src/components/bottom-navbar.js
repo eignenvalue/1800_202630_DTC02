@@ -7,6 +7,9 @@ import { navigationItems, isCurrentPage } from './navigation-items.js';
  * It adds a global stylesheet property called '--bottom-nav-height' that is
  * intended to tell other components the current height of the bottom navbar
  * 
+ * This value will be automatically updated by the component as the program
+ * progresses.
+ * 
  * The global element is intended to be utilized by the ScrollableVideoManager
  * so that the videos are not overlapped by the navbar.
  * 
