@@ -54,6 +54,10 @@ class ScrollableVideoManager extends HTMLElement {
     #stopAuthCheck = null;
     #checkedAuth = false;
 
+    constructor() {
+        super();
+    }
+
     #onFiltersChange = (event) => {
         this.setFilters(event.detail?.filters ?? []);
     }
@@ -61,8 +65,8 @@ class ScrollableVideoManager extends HTMLElement {
     #onAssignmentRequested = (event) => {
         this.#currentVideo.pauseVideo();
         this.#assignmentDOM.show();
-
     }
+
     #onQuizRequested = () => {
         this.#currentVideo.pauseVideo();
         this.#quizDOM.show();
@@ -71,7 +75,7 @@ class ScrollableVideoManager extends HTMLElement {
     // desktop keyboard navigation
     #onKey = (event) => {
         if (this.#animating || this.#dragging || !this.#currentVideo) return;
-        if (event.target.closest?.('input, textarea, select, [contenteditable]')) return;
+        if (event.target.closest?.('input, textarea, select')) return;
 
         if (event.key === 'ArrowDown' && this.#hasNext) {
             event.preventDefault();
@@ -83,10 +87,6 @@ class ScrollableVideoManager extends HTMLElement {
             this.#commit(-1);
         }
     };
-
-    constructor() {
-        super();
-    }
 
     #setInteracted(value) {
         this.#interacted = value;
@@ -134,6 +134,7 @@ class ScrollableVideoManager extends HTMLElement {
             constraints.push(where('tags', 'array-contains-any', this.#filters.slice(0, 30)));
         }
 
+        console.log('cursor', this.#cursor)
         if (this.#cursor) constraints.push(startAfter(this.#cursor));
         constraints.push(limit(this.#pageSize));
 
