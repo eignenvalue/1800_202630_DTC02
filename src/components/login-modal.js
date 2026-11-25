@@ -147,6 +147,7 @@ class LoginModal extends HTMLElement {
     /**
      * Hide this element on the DOM.
      * 
+     * @public
      * @returns {void}
      */
     hide() {
