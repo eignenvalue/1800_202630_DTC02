@@ -10,7 +10,6 @@ import { Assignment } from "./assignment";
 import { showLoginModal } from './login-modal.js';
 
 const VIDEO_PARAM = 'videoId';
-const OLD_VIDEO_PARAM = 'video'; // Keep previously shared links working.
 
 class ScrollableVideoManager extends HTMLElement {
 
@@ -54,6 +53,10 @@ class ScrollableVideoManager extends HTMLElement {
     #stopAuthCheck = null;
     #checkedAuth = false;
 
+    constructor() {
+        super();
+    }
+
     #onFiltersChange = (event) => {
         this.setFilters(event.detail?.filters ?? []);
     }
@@ -61,8 +64,8 @@ class ScrollableVideoManager extends HTMLElement {
     #onAssignmentRequested = (event) => {
         this.#currentVideo.pauseVideo();
         this.#assignmentDOM.show();
-
     }
+
     #onQuizRequested = () => {
         this.#currentVideo.pauseVideo();
         this.#quizDOM.show();
@@ -71,7 +74,7 @@ class ScrollableVideoManager extends HTMLElement {
     // desktop keyboard navigation
     #onKey = (event) => {
         if (this.#animating || this.#dragging || !this.#currentVideo) return;
-        if (event.target.closest?.('input, textarea, select, [contenteditable]')) return;
+        if (event.target.closest?.('input, textarea, select')) return;
 
         if (event.key === 'ArrowDown' && this.#hasNext) {
             event.preventDefault();
@@ -83,10 +86,6 @@ class ScrollableVideoManager extends HTMLElement {
             this.#commit(-1);
         }
     };
-
-    constructor() {
-        super();
-    }
 
     #setInteracted(value) {
         this.#interacted = value;
@@ -134,6 +133,7 @@ class ScrollableVideoManager extends HTMLElement {
             constraints.push(where('tags', 'array-contains-any', this.#filters.slice(0, 30)));
         }
 
+        console.log('cursor', this.#cursor)
         if (this.#cursor) constraints.push(startAfter(this.#cursor));
         constraints.push(limit(this.#pageSize));
 
@@ -181,7 +181,6 @@ class ScrollableVideoManager extends HTMLElement {
         } else {
             url.searchParams.delete(VIDEO_PARAM);
         }
-        url.searchParams.delete(OLD_VIDEO_PARAM);
 
         window.history.replaceState(window.history.state, '', url);
     }
@@ -431,7 +430,6 @@ class ScrollableVideoManager extends HTMLElement {
 
     #commit(direction) {
         this.#animating = true;
-
         this.#flushStyles();
 
         this.#layout(-direction * this.#height, true);
@@ -575,7 +573,7 @@ class ScrollableVideoManager extends HTMLElement {
 
         // A ?videoId=<id> in the URL is fetched first and shown first.
         const parameters = new URLSearchParams(window.location.search);
-        const linkedId = parameters.get(VIDEO_PARAM) || parameters.get(OLD_VIDEO_PARAM);
+        const linkedId = parameters.get(VIDEO_PARAM);
         this.#reload(linkedId);
     }
 
