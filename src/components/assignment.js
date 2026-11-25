@@ -1,5 +1,20 @@
 import { marked } from "marked";
 
+/**
+ * The Assignment class is an 'overlay' in this application. For the user
+ * this feature is called 'Practice.'
+ * 
+ * When a user presses the 'Practice' button the .show() method will be called
+ * on some instance of this class and the element will be visible on the DOM.
+ * 
+ * It is positioned absolutely in the top-left and covers the screen from there 
+ * to the bottom-right of the screen.
+ * 
+ * The content of the page is formatted in markdown and parsed into HTML before
+ * rendering using the 'marked' library.
+ * 
+ * @extends HTMLElement
+ */
 export class Assignment extends HTMLElement {
 
   /** The assignment text as a string (Markdown) */
