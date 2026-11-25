@@ -181,7 +181,6 @@ class ScrollableVideoManager extends HTMLElement {
         } else {
             url.searchParams.delete(VIDEO_PARAM);
         }
-        url.searchParams.delete(OLD_VIDEO_PARAM);
 
         window.history.replaceState(window.history.state, '', url);
     }
@@ -575,7 +574,7 @@ class ScrollableVideoManager extends HTMLElement {
 
         // A ?videoId=<id> in the URL is fetched first and shown first.
         const parameters = new URLSearchParams(window.location.search);
-        const linkedId = parameters.get(VIDEO_PARAM) || parameters.get(OLD_VIDEO_PARAM);
+        const linkedId = parameters.get(VIDEO_PARAM);
         this.#reload(linkedId);
     }
 
