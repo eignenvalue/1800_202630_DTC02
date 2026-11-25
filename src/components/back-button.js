@@ -1,7 +1,7 @@
 class BackButton extends HTMLElement {
 
   /**
-   * The connectCallback is a part of the Lifecycle methods for HTMLElements,
+   * The connectedCallback is a part of the Lifecycle methods for HTMLElements,
    * it runs every time the element is added to the Document Object Model (DOM).
    * 
    * Here it setups a few things:

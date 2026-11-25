@@ -105,7 +105,7 @@ export class Assignment extends HTMLElement {
   }
 
   /**
-   * The connectCallback is a part of the Lifecycle methods for HTMLElements,
+   * The connectedCallback is a part of the Lifecycle methods for HTMLElements,
    * it runs every time the element is added to the Document Object Model (DOM).
    * 
    * This function does 3 things:
