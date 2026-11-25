@@ -66,6 +66,27 @@
   animation: video-heart-pop 700ms ease-out;
 }
 
+.pause-icon {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  color: #dc3545;
+  font-size: clamp(6rem, 30vw, 10rem);
+  display: none;
+  opacity: 1;
+  filter: drop-shadow(0 0.2rem 0.35rem rgb(0 0 0 / 45%));
+
+  width: min-content;
+  height: min-content;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.pause-icon.is-visible {
+  display: block;
+}
+
 @keyframes video-heart-pop {
   0% {
     opacity: 0;
@@ -167,8 +188,87 @@ details>summary {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
+desktop-navbar {
+  display: none;
+}
+
+.desktop-sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: 220px;
+  z-index: 1040;
+  padding: 2rem 1rem;
+  background-color: #000;
+  border-right: 1px solid #272727;
+}
+
+.desktop-brand,
+.desktop-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  color: #fff;
+  text-decoration: none;
+}
+
+.desktop-brand {
+  margin-bottom: 2rem;
+  padding: 0 0.75rem;
+  font-size: 1.25rem;
+  font-weight: 900;
+}
+
+.desktop-brand i,
+.desktop-nav-link i {
+  font-size: 1.75rem;
+}
+
+.desktop-nav-link {
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: 999px;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.desktop-nav-link:hover,
+.desktop-nav-link:focus-visible,
+.desktop-nav-link.active {
+  color: #fff;
+  background-color: #232323;
+}
+
+.desktop-nav-link:focus-visible {
+  outline: 3px solid #fe2c55;
+  outline-offset: 2px;
+}
+
 body {
   padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+}
+
+@media (min-width: 768px) {
+  bottom-navbar {
+    display: none;
+  }
+
+  desktop-navbar {
+    display: block;
+  }
+
+  body.has-desktop-navbar {
+    padding-left: 220px;
+    padding-bottom: 0;
+  }
+
+  body.has-desktop-navbar:has(quiz-component:not([hidden]), assignment-element:not([hidden])) {
+    padding-left: 0;
+  }
+
+  body:has(quiz-component:not([hidden]), assignment-element:not([hidden])) desktop-navbar {
+    display: none;
+  }
+
 }
 
 .profile-page {
@@ -206,6 +306,22 @@ body {
   border-color: #555;
   color: #fff;
   font-size: 1.5rem;
+}
+
+.profile-page back-button button,
+.profile-page #logout-button {
+  width: 120px !important;
+  height: 38px !important;
+  padding: 0 12px !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  border-radius: 10px !important;
+  font-size: 15px !important;
+  font-weight: bold;
+  line-height: 1 !important;
+  white-space: nowrap;
 }
 
 .profile-page bottom-navbar nav {

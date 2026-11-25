@@ -1,4 +1,5 @@
 import { db } from '/src/firebaseConfig.js';
+import { onAuthReady } from '/src/authentication.js';
 import {
     collection, getDocs, query, where, limit, startAfter, doc, getDoc
 } from 'firebase/firestore';
@@ -6,6 +7,7 @@ import { VideoContainer } from './video-container.js';
 import './video-filters.js';
 import { QuizComponent } from "./quiz-component";
 import { Assignment } from "./assignment";
+import { showLoginModal } from './login-modal.js';
 
 const VIDEO_PARAM = 'videoId';
 const OLD_VIDEO_PARAM = 'video'; // Keep previously shared links working.
@@ -19,6 +21,7 @@ class ScrollableVideoManager extends HTMLElement {
     #queuePosition = 0;
     #height = 800; // placeholder; replaced by the measured stack height
     #loadError = '';
+    #interacted = false;
 
     // query state
     #filters = [];
@@ -48,14 +51,20 @@ class ScrollableVideoManager extends HTMLElement {
     #maxQueueSize = 100;
 
     #resizeObserver = null;
+    #stopAuthCheck = null;
+    #checkedAuth = false;
 
-    #onFiltersChange = (event) => this.setFilters(event.detail?.filters ?? []);
+    #onFiltersChange = (event) => {
+        this.setFilters(event.detail?.filters ?? []);
+    }
 
-    #onAssignmentRequested = () => {
+    #onAssignmentRequested = (event) => {
+        this.#currentVideo.pauseVideo();
         this.#assignmentDOM.show();
 
     }
     #onQuizRequested = () => {
+        this.#currentVideo.pauseVideo();
         this.#quizDOM.show();
     }
 
@@ -79,7 +88,17 @@ class ScrollableVideoManager extends HTMLElement {
         super();
     }
 
+    #setInteracted(value) {
+        this.#interacted = value;
+    }
+
+    #getInteracted() {
+        return this.#interacted;
+    }
+
     goNext() {
+        this.#setInteracted(true);
+
         if (this.#animating || this.#dragging || !this.#currentVideo) return;
 
         if (this.#hasNext) {
@@ -89,6 +108,8 @@ class ScrollableVideoManager extends HTMLElement {
     }
 
     goPrevious() {
+        this.#setInteracted(true);
+
         if (this.#animating || this.#dragging || !this.#currentVideo) return;
 
         if (this.#hasLast) {
@@ -295,12 +316,15 @@ class ScrollableVideoManager extends HTMLElement {
         this.#nextVideo.stopVideo();
 
         this.#currentVideo.showVideo();
-        this.#currentVideo.playVideo();
+        if (this.#getInteracted()) {
+            this.#playCurrentVideo();
+        }
 
         this.#layout(0);
     }
 
     #onPointerDown(event) {
+        this.#setInteracted(true);
         if (this.#animating || !this.#currentVideo) return;
         if (event.target.closest('button, a, summary, input, video-side-navbar')) return;
 
@@ -378,6 +402,7 @@ class ScrollableVideoManager extends HTMLElement {
     }
 
     #onWheel(event) {
+        this.#setInteracted(true);
         event.preventDefault();
         if (this.#animating || this.#dragging || !this.#currentVideo) return;
 
@@ -399,17 +424,24 @@ class ScrollableVideoManager extends HTMLElement {
         }, this.#animationMs);
     }
 
+    #flushStyles() {
+        // Reading a layout property forces a synchronous style/layout recalculation.
+        void this.#stack.offsetWidth;
+    }
+
     #commit(direction) {
         this.#animating = true;
-        void this.#stack.offsetHeight; // flush styles so a just-shown video still animates
-        this.#layout(-direction * this.#height, true);
 
+        this.#flushStyles();
+
+        this.#layout(-direction * this.#height, true);
         const requestId = this.#requestId;
         setTimeout(() => {
             if (requestId !== this.#requestId) {
                 this.#animating = false;
                 return;
             }
+
             if (direction === 1) {
                 this.#rotateForward();
             } else {
@@ -517,19 +549,29 @@ class ScrollableVideoManager extends HTMLElement {
         this.#syncPanels();
     }
 
-    connectedCallback() {
-        if (!this.#stack) this.#buildShell();
-        if (!this.#assignmentDOM) this.#buildPanels();
+    #playCurrentVideo(event) {
+        this.#currentVideo.playVideo();
+    }
 
+    connectedCallback() {
         // filters live inside this element, and their event bubbles
         this.addEventListener('video-filters-change', this.#onFiltersChange);
         this.addEventListener('video-practice-requested', this.#onAssignmentRequested);
         this.addEventListener('video-quiz-requested', this.#onQuizRequested);
         window.addEventListener('keydown', this.#onKey);
 
+        if (!this.#stack) this.#buildShell();
+        if (!this.#assignmentDOM) this.#buildPanels();
+
         this.#resizeObserver = new ResizeObserver(() => this.#measure());
         this.#resizeObserver.observe(this.#stack);
         this.#measure();
+
+        this.#stopAuthCheck = onAuthReady((user) => {
+            if (this.#checkedAuth) return;
+            this.#checkedAuth = true;
+            if (!user) showLoginModal('Log in or sign up to save your likes and quiz progress, or choose Not now to keep watching.');
+        });
 
         // A ?videoId=<id> in the URL is fetched first and shown first.
         const parameters = new URLSearchParams(window.location.search);
@@ -543,6 +585,7 @@ class ScrollableVideoManager extends HTMLElement {
         this.removeEventListener('video-quiz-requested', this.#onQuizRequested);
         window.removeEventListener('keydown', this.#onKey);
         this.#resizeObserver?.disconnect();
+        this.#stopAuthCheck?.();
 
         this.#assignmentDOM?.remove();
         this.#quizDOM?.remove();

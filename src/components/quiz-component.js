@@ -38,27 +38,27 @@ export class QuizComponent extends HTMLElement {
 
     const body = questions.length
       ? questions
-          .map((q, qIndex) => {
-            const name = `${this.#uid}-q${qIndex}`;
-            const type = q.type === "checkbox" ? "checkbox" : "radio";
-            const options = (q.possibleAnswers ?? [])
-              .map(
-                (option, i) => `
+        .map((q, qIndex) => {
+          const name = `${this.#uid}-q${qIndex}`;
+          const type = q.type === "checkbox" ? "checkbox" : "radio";
+          const options = (q.possibleAnswers ?? [])
+            .map(
+              (option, i) => `
             <div class="each-quiz form-check">
               <input class="form-check-input" type="${type}" name="${name}" id="${name}-${i}" value="${i}" />
               <label class="form-check-label" for="${name}-${i}">${escapeHtml(option)}</label>
             </div>`,
-              )
-              .join("");
+            )
+            .join("");
 
-            return `
+          return `
             <div class="quiz">
               <h1 class="question">${escapeHtml(q.question)}</h1>
               ${options}
             </div>`;
-          })
-          .join("") +
-        `
+        })
+        .join("") +
+      `
           <div class="text-center">
             <button class="btn btn-primary mt-5" type="submit">Submit</button>
             <p class="score mt-3 fs-4"></p>
@@ -71,7 +71,10 @@ export class QuizComponent extends HTMLElement {
         ${body}
       </form>`;
 
-    this.querySelector(".close").onclick = () => this.hide();
+    this.querySelector(".close").onclick = () => {
+      this.hide();
+    }
+
     this.querySelector("form").addEventListener("submit", (event) => {
       event.preventDefault();
       this.checkAnswers();
@@ -79,7 +82,7 @@ export class QuizComponent extends HTMLElement {
 
     const url = new URL(window.location);
     if (!url.searchParams.get("quizOpen")) {
-      this.style.display = "none";
+      this.hidden = true;
     }
   }
 
@@ -119,12 +122,11 @@ export class QuizComponent extends HTMLElement {
   }
 
   connectedCallback() {
-    this.style.display = "none";
+    this.hidden = true;
 
     if (!this.#styled) {
-      this.classList.add("position-fixed", "top-0", "start-0", "w-100");
+      this.classList.add("position-fixed", "top-0", "start-0", "w-100", "h-100", "pb-5");
       this.style.backgroundColor = "Black";
-      this.style.height = "calc(100% - 72px)";
       this.style.zIndex = "100";
       this.style.overflowY = "auto";
       this.#styled = true;
@@ -170,7 +172,7 @@ export class QuizComponent extends HTMLElement {
     const url = new URL(window.location);
     url.searchParams.set("quizOpen", 1);
     window.history.replaceState({}, "", url);
-    this.style.display = "block";
+    this.hidden = false;
   }
 
   hide() {
@@ -178,7 +180,7 @@ export class QuizComponent extends HTMLElement {
     const url = new URL(window.location);
     url.searchParams.delete("quizOpen", 1);
     window.history.replaceState({}, "", url);
-    this.style.display = "none";
+    this.hidden = true;
   }
 
   disconnectedCallback() {

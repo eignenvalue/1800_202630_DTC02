@@ -18,14 +18,22 @@ export class Assignment extends HTMLElement {
     this.style.zIndex = "100";
 
     const url = new URL(window.location);
-    if (!url.searchParams.get("assignmentOpen")) {
-      this.style.display = "none";
-    };
+    this.hidden = !url.searchParams.get("assignmentOpen");
     this.innerHTML = `
             <style>
                 assignment-element strong { font-weight: 800; }
                 assignment-element h1 { font-weight: 1000; }
                 assignment-element h2 { font-weight: 800; }
+                [data-content] {
+                 color: White; margin-top: 20px; max-width: 700px; margin:auto; 
+                 background-color: Black; border-radius: 10px;
+                 padding: 20px; margin-bottom: 15px; font-weight: bold; background-color: #232323;
+                }
+                @media(max-width: 568px){
+                  [data-content]{
+                    margin: 20px
+                  }
+                }
             </style>
             <div style = "font-family: 'Nunito', sans-serif;">
                 <button class="close" style = "  background-color: #fe2c55;
@@ -36,16 +44,16 @@ export class Assignment extends HTMLElement {
                                                  padding: 5px 12px;
                                                  font-size: 20px;
                                                  font-weight: bold;" type="button">X</button>
-                <div data-content style = "color: White; margin-top: 20px;
-                 background-color: Black; border-radius: 10px;
-                 padding: 20px; margin-bottom: 15px; margin: 20px; font-weight: bold; background-color: #232323;"></div>
+                <div data-content></div>
             </div>
         `;
     this.style.backgroundColor = "Black";
     this.style.overflowY = "auto";
     this.style.paddingBottom = "70px";
     this.#content = this.querySelector("[data-content]");
-    this.querySelector(".close").onclick = () => this.hide();
+    this.querySelector(".close").onclick = () => {
+      this.hide();
+    };
   }
 
   #renderContent() {
@@ -66,14 +74,14 @@ export class Assignment extends HTMLElement {
     const url = new URL(window.location);
     url.searchParams.set("assignmentOpen", 1);
     window.history.replaceState({}, "", url);
-    this.style.display = "block";
+    this.hidden = false;
   }
 
   hide() {
     const url = new URL(window.location);
     url.searchParams.delete("assignmentOpen");
     window.history.replaceState({}, "", url);
-    this.style.display = "none";
+    this.hidden = true;
   }
 }
 
