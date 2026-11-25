@@ -82,7 +82,7 @@ export class QuizComponent extends HTMLElement {
 
     const url = new URL(window.location);
     if (!url.searchParams.get("quizOpen")) {
-      this.style.display = "none";
+      this.hidden = true;
     }
   }
 
@@ -122,7 +122,7 @@ export class QuizComponent extends HTMLElement {
   }
 
   connectedCallback() {
-    this.style.display = "none";
+    this.hidden = true;
 
     if (!this.#styled) {
       this.classList.add("position-fixed", "top-0", "start-0", "w-100", "h-100", "pb-5");
@@ -172,7 +172,7 @@ export class QuizComponent extends HTMLElement {
     const url = new URL(window.location);
     url.searchParams.set("quizOpen", 1);
     window.history.replaceState({}, "", url);
-    this.style.display = "block";
+    this.hidden = false;
   }
 
   hide() {
@@ -180,7 +180,7 @@ export class QuizComponent extends HTMLElement {
     const url = new URL(window.location);
     url.searchParams.delete("quizOpen", 1);
     window.history.replaceState({}, "", url);
-    this.style.display = "none";
+    this.hidden = true;
   }
 
   disconnectedCallback() {

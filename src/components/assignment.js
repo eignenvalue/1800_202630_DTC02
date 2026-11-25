@@ -18,9 +18,7 @@ export class Assignment extends HTMLElement {
     this.style.zIndex = "100";
 
     const url = new URL(window.location);
-    if (!url.searchParams.get("assignmentOpen")) {
-      this.style.display = "none";
-    };
+    this.hidden = !url.searchParams.get("assignmentOpen");
     this.innerHTML = `
             <style>
                 assignment-element strong { font-weight: 800; }
@@ -76,14 +74,14 @@ export class Assignment extends HTMLElement {
     const url = new URL(window.location);
     url.searchParams.set("assignmentOpen", 1);
     window.history.replaceState({}, "", url);
-    this.style.display = "block";
+    this.hidden = false;
   }
 
   hide() {
     const url = new URL(window.location);
     url.searchParams.delete("assignmentOpen");
     window.history.replaceState({}, "", url);
-    this.style.display = "none";
+    this.hidden = true;
   }
 }
 

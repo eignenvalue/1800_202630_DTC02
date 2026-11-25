@@ -260,6 +260,15 @@ body {
     padding-left: 220px;
     padding-bottom: 0;
   }
+
+  body.has-desktop-navbar:has(quiz-component:not([hidden]), assignment-element:not([hidden])) {
+    padding-left: 0;
+  }
+
+  body:has(quiz-component:not([hidden]), assignment-element:not([hidden])) desktop-navbar {
+    display: none;
+  }
+
 }
 
 .profile-page {
