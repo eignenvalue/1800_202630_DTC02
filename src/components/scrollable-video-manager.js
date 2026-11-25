@@ -10,7 +10,6 @@ import { Assignment } from "./assignment";
 import { showLoginModal } from './login-modal.js';
 
 const VIDEO_PARAM = 'videoId';
-const OLD_VIDEO_PARAM = 'video'; // Keep previously shared links working.
 
 class ScrollableVideoManager extends HTMLElement {
 
@@ -431,7 +430,6 @@ class ScrollableVideoManager extends HTMLElement {
 
     #commit(direction) {
         this.#animating = true;
-
         this.#flushStyles();
 
         this.#layout(-direction * this.#height, true);
