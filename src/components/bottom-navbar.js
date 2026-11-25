@@ -18,10 +18,7 @@ class BottomNavbar extends HTMLElement {
     #observer = null;
 
     /**
-     * The connectedCallback is a part of the Lifecycle methods for HTMLElements,
-     * it runs every time this element is added to the Document Object Model (DOM).
-     * 
-     * This function sets up a few things:
+     * This connectedCallback call sets up a few things:
      * 1) Creates the HTML structure for the BottomNavbar so that there is content, and 
      *    sets it to this elements innerHTML.
      * 2) Runs a query selector looking for the first <nav> inside this element, which

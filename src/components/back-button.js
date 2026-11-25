@@ -1,10 +1,15 @@
+/**
+ * The BackButton class is intended to be consumed by any page/modal/etc component
+ * that needs to provide back button functionality.
+ * 
+ * The styling is brand specific so that it can be reused anywhere in the application.
+ * 
+ * @extends HTMLElement
+ */
 class BackButton extends HTMLElement {
 
   /**
-   * The connectedCallback is a part of the Lifecycle methods for HTMLElements,
-   * it runs every time the element is added to the Document Object Model (DOM).
-   * 
-   * Here it setups a few things:
+   * This connectedCallback call sets up a few things:
    * 1) Sets the innerHTML content of the BackButton element to be a HTMLButtonElement.
    * 2) Runs a querySelector for the first "button" found within the BackButton element
    *    and adds a "click" event listener to it that is passed an anonymous callback function
