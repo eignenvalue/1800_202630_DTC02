@@ -9,7 +9,8 @@ class BackButton extends HTMLElement {
    * 2) Runs a querySelector for the first "button" found within the BackButton element
    *    and adds a "click" event listener to it that is passed an anonymous callback function
    *  2a) The anonymous callback function does NOT use the event parameter
-   *  2b) The History API is used to navigate back one page (to the previous page)
+   *  2b) The History API is used to navigate back one page (to the previous page),
+   *      this ia a direct mutation of global state, as is any use of the History API.
    * 
    * @public
    * @returns {void}
