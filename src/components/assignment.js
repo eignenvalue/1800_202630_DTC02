@@ -1,7 +1,11 @@
 import { marked } from "marked";
 
 export class Assignment extends HTMLElement {
+
+  /** The assignment text as a string (Markdown) */
   #assignmentText = "";
+
+  /** A reference to the container holding the content on the DOM */
   #content = null;
 
   /** Get the assignment text. */

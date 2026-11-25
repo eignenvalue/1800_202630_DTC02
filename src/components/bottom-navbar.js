@@ -2,8 +2,13 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 import { navigationItems, isCurrentPage } from './navigation-items.js';
 
 class BottomNavbar extends HTMLElement {
+
+    /** A private reference to the ResizeObserver. */
     #observer = null;
 
+    /**
+     * 
+     */
     connectedCallback() {
         this.innerHTML = `
             <nav class="navbar navbar-dark bg-dark fixed-bottom bottom-navbar"
