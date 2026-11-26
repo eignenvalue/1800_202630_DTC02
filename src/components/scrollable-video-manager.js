@@ -151,6 +151,8 @@ class ScrollableVideoManager extends HTMLElement {
     /**
      * The div that holds the three <video-container> elements.
      * 
+     * It's height is the height of one video.
+     * 
      * @type {HTMLElement | null}
      * @private
      */
@@ -652,25 +654,40 @@ class ScrollableVideoManager extends HTMLElement {
         this.#refreshNext();
     }
 
-    // Drop the oldest items so the queue stays within #maxQueueSize.
-    // Always keeps the video just behind the current one, because its
-    // element is still in the stack and swiping back needs it.
     /**
      * Keep the queue at length {@link #maxQueueSize} or less.
      * 
-     * @returns 
+     * This method will always keep the last video because the user needs
+     * it for swiping backward.
+     * 
+     * @private
+     * @returns {void} 
      */
     #trimQueue() {
         const excess = this.#queue.length - this.#maxQueueSize;
         if (excess <= 0) return;
 
+        /** The amount of videos that are removable from the front of the array. */
         const removable = Math.min(excess, Math.max(0, this.#queuePosition - 1));
         if (removable === 0) return;
 
+        /** 
+         * Create a new array without removable videos. 
+         * {@link removable} is the start index. 
+         */
         this.#queue = this.#queue.slice(removable);
+
+        /** Offset the queue position to account for the NOW missing videos. */
         this.#queuePosition -= removable;
     }
 
+    /**
+     * Refresh the {@link #nextVideo} element to display the video in 
+     * the {@link #queue}.
+     * 
+     * @private
+     * @returns {void}
+     */
     #refreshNext() {
         if (this.#dragging || this.#animating) return;
         const info = this.#queue[this.#queuePosition + 1];
@@ -685,14 +702,26 @@ class ScrollableVideoManager extends HTMLElement {
     // ---------- assignment / quiz panels ----------
 
     // Created once; they live next to this element, not inside it
+    /**
+     * Build Assignment and QuizComponent panels to be reused with all
+     * VideoContainers. Place them in the DOM after the ScrollableVideoManager.
+     * 
+     * @private
+     * @returns {void}
+     */
     #buildPanels() {
         this.#assignmentDOM = new Assignment();
         this.#quizDOM = new QuizComponent();
         this.after(this.#assignmentDOM, this.#quizDOM);
     }
 
-    // Push the current video's data into the panels and close any that
-    // were left open from the previous video
+    /**
+     * Push the current video's data into the panels and close any panels
+     * that were left open from the previous video.
+     * 
+     * @private
+     * @returns {void} 
+     */
     #syncPanels() {
         if (!this.#assignmentDOM || !this.#quizDOM) return;
 
@@ -706,30 +735,89 @@ class ScrollableVideoManager extends HTMLElement {
 
     // ---------- layout / gestures ----------
 
+    /**
+     * Check if there is a 'last video' in the queue (i.e. A video before the current video).
+     * 
+     * @private
+     * @type {boolean} true is the queuePosition is greater than 0, false otherwise
+     */
     get #hasLast() {
         return this.#queuePosition > 0;
     }
 
+    /**
+     * Check if there is a 'next video' in the queue (i.e. A video after the current video).
+     * 
+     * @private
+     * @type {boolean} true if the queue position is less than the length of the queue minus 1,
+     *                 false otherwise
+     */
     get #hasNext() {
         return this.#queuePosition < this.#queue.length - 1;
     }
 
+    /**
+     * Create a new video container with info, or an empty object if
+     * info is nullish.
+     * 
+     * @param {object} info a well-formed video object
+     * @private 
+     * @returns {VideoContainer} a new video container instantiated with {@link info}
+     */
     #createVideo(info) {
         return new VideoContainer(info ?? {});
     }
 
-    // Keep #height in sync with the real stack height (rotation, URL-bar
-    // collapse, window resize, navbar height change)
+    /**
+     * Keep {@link #height} in sync with the real stack height.
+     * 
+     * Screen rotation, URL-bar collapse, window resize, and navbar height change
+     * all affect how the video player should be presented.
+     * 
+     * @private
+     * @returns {void}
+     */
     #measure() {
         const height = this.#stack?.clientHeight;
+
+        /** If the height is undefined or hasn't changed, exit. */
         if (!height || height === this.#height) return;
+
+        /** Update the recorded height of the {@link stack} for VideoContainers. */
         this.#height = height;
+
+        /** 
+         * If there is no current video then {@link #queue} is empty and 
+         * there is nothing to adjust below. 
+         */
         if (!this.#currentVideo) return;
+
+        /** 
+         * If measuring has occurred and the videos are not currently being 
+         * dragged or animated, set the last, next, and current video positions 
+         * with no offset or animation.
+         */
         if (!this.#dragging && !this.#animating) this.#layout(0);
     }
 
+    /**
+     * 
+     * @param {number} offset the amount of offset to apply to the elements position
+     *                        during the  
+     * @param {*} animate 
+     */
     #layout(offset = 0, animate = false) {
         const transition = animate ? `transform ${this.#animationMs}ms ease` : 'none';
+
+        /**
+         * 
+         * 
+         * @param {VideoContainer} video the video to apply the styles too
+         * @param {number} base the starting Y position of the video before 
+         *                      the position translation
+         * @private
+         * @returns {void}
+         */
         const place = (video, base) => {
             video.style.transition = transition;
             video.style.transform = `translateY(${base + offset}px)`;
