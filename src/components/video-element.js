@@ -87,15 +87,17 @@ class VideoElement extends HTMLElement {
      * @returns {void}
      */
     render() {
-        // fill whatever box the parent gives us
+        /** Fill whatever box the parent puts this element in. */
         this.style.display = 'block';
         this.style.width = '100%';
         this.style.height = '100%';
 
-        // object-fit: contain shows the whole frame (black bars if the aspect
-        // ratio differs); playsinline is essential on iOS (tells browser to 
-        // play the video inside its designated element rather than automatically 
-        // expand to fullscreen)
+        /**
+         * object-fit: contain shows the whole frame (black bars if the aspect
+         * ratio differs); playsinline is essential on iOS (tells browser to 
+         * play the video inside its designated element rather than automatically 
+         * expand to fullscreen)
+         */
         this.innerHTML = `
             <video class="bg-black" loop playsinline preload="auto"
                    style="display: block; width: 100%; height: 100%; object-fit: contain;">
