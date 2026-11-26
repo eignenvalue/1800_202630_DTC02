@@ -160,6 +160,7 @@ class LoginModal extends HTMLElement {
  * displayed, or by creating a new one if no instance exists on the DOM yet.
  * 
  * @param {string} message a message to show to the user in the login modal
+ * @global
  * @returns {void}
  */
 export function showLoginModal(message) {
@@ -169,6 +170,19 @@ export function showLoginModal(message) {
         document.body.appendChild(modal);
     }
     modal.showPopup(message);
+}
+
+/**
+ * Hide the login modal when the user logs in in another tab.
+ * 
+ * @global
+ * @returns {void}
+ */
+export function hideLoginModal() {
+    let modal = document.querySelector('login-modal');
+    if (modal) {
+        modal.hide();
+    }
 }
 
 // Register the custom element with the CustomElementRegistry.

@@ -9,7 +9,7 @@ import { VideoContainer } from './video-container.js';
 import './video-filters.js';
 import { QuizComponent } from "./quiz-component";
 import { Assignment } from "./assignment";
-import { showLoginModal } from './login-modal.js';
+import { hideLoginModal, showLoginModal } from './login-modal.js';
 
 /** 
  * The video parameter name for adding the video ID to the URL.
@@ -1084,11 +1084,26 @@ class ScrollableVideoManager extends HTMLElement {
         this.#resizeObserver.observe(this.#stack);
         this.#measure();
 
-        this.#stopAuthCheck = onAuthReady((user) => {
-            if (this.#checkedAuth) return;
+        /**
+         * Provide a callback to the onAuthReady function
+         * which wraps firebases onAuthStateChanged, which provides
+         * an easy way to check if a users authentication state has changed.
+         * 
+         * This callback is called if the authentication state of the user changes.
+         */
+        const onAuthReadyUserCallback = (user) => {
+            /** User is null */
+            if (!user) {
+                this.checkedAuth = false;
+                showLoginModal('Log in or sign up to save your likes and quiz progress, or choose Not now to keep watching.');
+                return;
+            }
+
+            hideLoginModal();
             this.#checkedAuth = true;
-            if (!user) showLoginModal('Log in or sign up to save your likes and quiz progress, or choose Not now to keep watching.');
-        });
+        }
+
+        this.#stopAuthCheck = onAuthReady(onAuthReadyUserCallback);
 
         // A ?videoId=<id> in the URL is fetched first and shown first.
         const parameters = new URLSearchParams(window.location.search);
