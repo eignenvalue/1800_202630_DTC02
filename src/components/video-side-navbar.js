@@ -15,7 +15,9 @@ import {
  * to take while watching a video, such as liking a video, or opening a
  * quiz.
  * 
- * 
+ * Each VideoContainer uses a VideoElement as well as a VideoSideNavbar.
+ * This is to complete the scrolling effect where the VideoSideNavbar travels
+ * upward with the video as the user scrolls to the next/past video.
  * 
  * @extends HTMLElement
  */
@@ -77,35 +79,40 @@ class VideoSideNavbar extends HTMLElement {
     }
 
     /**
+     * If the video-id happens to change then update the like and quiz completion state, 
+     * but this shouldn't happen.
      * 
-     * @param {*} name 
-     * @param {*} oldValue 
-     * @param {*} newValue
+     * @param {string} name the name of the attribute that has changed
+     * @param {string | null} oldValue the old value of the attribute as a string or null
+     * @param {string | null} newValue the new value of the attribute as a string or null
      * @public
      * @returns {void} 
      */
     attributeChangedCallback(name, oldValue, newValue) {
-        // Only re-render after the element is in the DOM
-        if (oldValue !== newValue && this.isConnected) {
+        if (oldValue !== newValue) {
             this.loadLikeState();
             this.loadQuizState();
         }
     }
 
     /**
-     * Load the like state for the current logged in user.
+     * Load the like state for the logged in user.
      * 
-     * If the user is not logged in
+     * Query the Firestore database using getDoc to obtain a document refernce to the document
+     * within the videos collection using the {@link videoId} (videos/123j123j1312J) .
      * 
+     * If the {@link user} is not logged-in the check for a currently liked video will not be run.
+     * 
+     * @public
      * @returns {void}
      */
     async loadLikeState() {
         if (!this.videoId) return;
 
         this.isLoading = true;
-        this.render();
 
         try {
+
             const videoSnapshot = await getDoc(doc(db, 'videos', this.videoId));
 
             if (!videoSnapshot.exists()) {
@@ -115,7 +122,7 @@ class VideoSideNavbar extends HTMLElement {
             const video = videoSnapshot.data();
 
             this.likeCount = Number.isInteger(video.like_count) ? video.like_count : 0;
-            this.isLiked = await this.checkIfUserHasLikedCurrentVideo();
+            this.isLiked = this.user ? await this.checkIfUserHasLikedCurrentVideo() : false;
         } catch (error) {
             console.error('Could not load the video like state:', error);
             this.isLiked = false;
@@ -126,6 +133,15 @@ class VideoSideNavbar extends HTMLElement {
         }
     }
 
+    /**
+     * Check if the user has liked the curretn {@link video}.
+     * 
+     * Attempts to get the users liked videos array by reading a snapshot of the
+     * users document from the database.
+     * 
+     * @public
+     * @returns {boolean} if the video exists in the users likedVideo array
+     */
     async checkIfUserHasLikedCurrentVideo() {
         let likedVideos = [];
 
@@ -137,6 +153,14 @@ class VideoSideNavbar extends HTMLElement {
         return likedVideos.includes(this.videoId);
     }
 
+    /**
+     * Emit custom events from this element.
+     * 
+     * @param {string} name the name of the event
+     * @param {object} detail information the event will carry and provide to the listener that catches it
+     * @public
+     * @returns {void}
+     */
     emit(name, detail = {}) {
         this.dispatchEvent(new CustomEvent(name, {
             bubbles: true,
@@ -145,6 +169,20 @@ class VideoSideNavbar extends HTMLElement {
         }));
     }
 
+    /**
+     * The 'video-nav-action' event is handled by this method.
+     * 
+     * This function expects specific types of actions to be tried, and
+     * will try to complete the corresponding action to satisfy the user.
+     * 
+     * event.detail.action is used without question here because the VideoSideNavbarAnchor
+     * emitter always emits with the key action.
+     * 
+     * @param {CustomEvent} event a 'video-nav-action' event with details containing an 
+     *                            action type
+     * @public
+     * @returns {void}
+     */
     async handleNavAction(event) {
         event.preventDefault();
 
@@ -178,6 +216,11 @@ class VideoSideNavbar extends HTMLElement {
         this.render();
     }
 
+    /**
+     * 
+     * @
+     * @returns {void}
+     */
     async handleShareAction() {
         try {
             // Start with a clean URL so none of the current URL parameters can
@@ -240,6 +283,7 @@ class VideoSideNavbar extends HTMLElement {
             return false;
         }
     }
+
     async loadQuizState() {
         if (!this.user || !this.videoId) {
             this.quizDone = false;
@@ -278,17 +322,39 @@ class VideoSideNavbar extends HTMLElement {
         `;
     }
 
+    /**
+     * If the user is not logged in the anonymous function passed to onAuthStateChanged
+     * will set {@link user} to null.
+     * 
+     * The video-nav-action event is an event sent by VideoSideNavbarAnchors indicating that
+     * the user wants to take a specific action such as liking a video or opening an assignment popup.
+     *  
+     * Rather than pipe-drill different methods, this listener will catch those events and do
+     * something with the data inside {@link handleNavAction}.
+     * 
+     * {@link unsubscribeFromAuth} is also assigned a Unsubscribe 
+     * 
+     * @public
+     * @returns {void}
+     */
     connectedCallback() {
         this.addEventListener('video-nav-action', this.handleNavAction);
-        this.render();
-
         this.unsubscribeFromAuth = onAuthStateChanged(auth, (user) => {
             this.user = user;
             this.loadLikeState();
             this.loadQuizState();
         });
+
+        this.render();
     }
 
+    /**
+     * Removes the video-nav-action event listener, 
+     * and calls unsubscribeFromAuth (if it is not null)
+     * 
+     * @public
+     * @returns {void}
+     */
     disconnectedCallback() {
         this.removeEventListener('video-nav-action', this.handleNavAction);
         this.unsubscribeFromAuth?.();
