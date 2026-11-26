@@ -285,7 +285,7 @@ class VideoFilters extends HTMLElement {
         scroller.addEventListener('pointercancel', endDrag);
 
         /**
-         * Wheel Event: Vertical mouse wheel scrolls the chips sideways
+         * Wheel Event: Vertical mouse wheel scrolls the chips sideways.
          * 
          * passive: false tells the browser that "I might use event.preventDefault()"
          * setting it to true means that you will NOT use event.preventDefault()
