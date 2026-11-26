@@ -10,30 +10,80 @@ import {
     setDoc,
 } from 'firebase/firestore';
 
+/**
+ * The VideoSideNavbar is an element that displays options for a user
+ * to take while watching a video, such as liking a video, or opening a
+ * quiz.
+ * 
+ * 
+ * 
+ * @extends HTMLElement
+ */
 class VideoSideNavbar extends HTMLElement {
+
     constructor() {
         super();
+
+        /** @type {User} @public */
         this.user = null;
+
+        /** @type {boolean} @public */
         this.isLiked = false;
+
+        /** @type {boolean} @public */
         this.quizDone = false;
+
+        /** @type {number} @public */
         this.likeCount = 0;
+
+        /** @type {boolean} @public */
         this.isLoading = true;
+
+        /** @type {function | null} @public */
         this.unsubscribeFromAuth = null;
+
+        /** @type {function} @public */
         this.handleNavAction = this.handleNavAction.bind(this);
     }
 
+    /**
+     * Returns a list of attributes to watch for changes. 
+     * 
+     * @public
+     * @returns {Array<string>}
+     */
     static get observedAttributes() {
         return ['video-id'];
     }
 
+    /**
+     * The video ID as a string.
+     * 
+     * @public
+     * @type {string | null} 
+     */
     get videoId() {
         return this.getAttribute('video-id');
     }
 
+    /**
+     * Set the video ID attribute.
+     * 
+     * @public
+     * @type {string}
+     */
     set videoId(value) {
         this.setAttribute('video-id', value);
     }
 
+    /**
+     * 
+     * @param {*} name 
+     * @param {*} oldValue 
+     * @param {*} newValue
+     * @public
+     * @returns {void} 
+     */
     attributeChangedCallback(name, oldValue, newValue) {
         // Only re-render after the element is in the DOM
         if (oldValue !== newValue && this.isConnected) {
@@ -42,6 +92,13 @@ class VideoSideNavbar extends HTMLElement {
         }
     }
 
+    /**
+     * Load the like state for the current logged in user.
+     * 
+     * If the user is not logged in
+     * 
+     * @returns {void}
+     */
     async loadLikeState() {
         if (!this.videoId) return;
 
@@ -56,15 +113,9 @@ class VideoSideNavbar extends HTMLElement {
             }
 
             const video = videoSnapshot.data();
-            let likedVideos = [];
-            if (this.user) {
-                const userSnapshot = await getDoc(doc(db, 'users', this.user.uid));
-                likedVideos = userSnapshot.data()?.liked_videos || [];
-            }
-            this.isLiked = likedVideos.includes(this.videoId);
-            this.likeCount = Number.isInteger(video.like_count)
-                ? video.like_count
-                : 0;
+
+            this.likeCount = Number.isInteger(video.like_count) ? video.like_count : 0;
+            this.isLiked = await this.checkIfUserHasLikedCurrentVideo();
         } catch (error) {
             console.error('Could not load the video like state:', error);
             this.isLiked = false;
@@ -73,6 +124,17 @@ class VideoSideNavbar extends HTMLElement {
             this.isLoading = false;
             this.render();
         }
+    }
+
+    async checkIfUserHasLikedCurrentVideo() {
+        let likedVideos = [];
+
+        if (this.user) {
+            const userSnapshot = await getDoc(doc(db, 'users', this.user.uid));
+            likedVideos = userSnapshot.data()?.liked_videos || [];
+        }
+
+        return likedVideos.includes(this.videoId);
     }
 
     emit(name, detail = {}) {
@@ -94,7 +156,6 @@ class VideoSideNavbar extends HTMLElement {
         }
 
         this.isLoading = true;
-        this.render();
 
         switch (event.detail.action) {
             case 'like':
@@ -215,7 +276,7 @@ class VideoSideNavbar extends HTMLElement {
                 </ul>
             </nav>
         `;
-    } 
+    }
 
     connectedCallback() {
         this.addEventListener('video-nav-action', this.handleNavAction);
@@ -234,4 +295,5 @@ class VideoSideNavbar extends HTMLElement {
     }
 }
 
+// Define the custom element with CustomElementRegistry.
 customElements.define('video-side-navbar', VideoSideNavbar);
