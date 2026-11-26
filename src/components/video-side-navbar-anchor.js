@@ -55,7 +55,7 @@ class VideoSideNavbarAnchor extends HTMLElement {
     }
 
     /**
-     * Render the icon initially
+     * Render the icon initially by calling {@link renderIcon}
      * 
      * @public
      * @returns {void}
@@ -65,7 +65,10 @@ class VideoSideNavbarAnchor extends HTMLElement {
     }
 
     /**
+     * Dynamically render the icon based on the elements attributes.
      * 
+     * Adds an event listener if a button must be added for the intended
+     * action type.
      * 
      * @public
      * @returns {void}
@@ -94,7 +97,7 @@ class VideoSideNavbarAnchor extends HTMLElement {
                     rel="noreferrer noopener">${content}
                 </a>`}
             </li>
-    `;
+        `;
 
         // Only the button is query selected because the anchor element acts as a hyperlink.
         const buttonAdded = this.querySelector('button');
@@ -103,6 +106,12 @@ class VideoSideNavbarAnchor extends HTMLElement {
         }
     }
 
+    /**
+     * Cleanup a potential button event listener.
+     * 
+     * @public
+     * @returns {void}
+     */
     disconnectedCallback() {
         const buttonAvailable = this.querySelector('button');
         if (buttonAvailable) {
@@ -110,11 +119,30 @@ class VideoSideNavbarAnchor extends HTMLElement {
         }
     }
 
+    /**
+     * Prevent any default behaviour of the button and call {@link sendVideoNavAction}
+     * to dispatch a custom event.
+     * 
+     * @param {Event} event the event object describing the users click
+     * @public
+     * @returns {void}
+     */
     sendVideoNavActionEvent(event) {
         event.preventDefault();
         this.sendVideoNavAction();
     }
 
+    /**
+     * Dispatch a 'video-nav-action' event that includes details
+     * about the action the user would like to take.
+     * 
+     * The event must be caught and handled by a parent.
+     * 
+     * {@link VideoSideNavbarAnchor} will not try to do the action at all.
+     * 
+     * @public
+     * @returns {void}
+     */
     sendVideoNavAction() {
         this.dispatchEvent(new CustomEvent('video-nav-action', {
             bubbles: true,
@@ -123,4 +151,5 @@ class VideoSideNavbarAnchor extends HTMLElement {
     }
 }
 
+// Define the custom element with CustomElementRegistry.
 customElements.define('video-side-navbar-anchor', VideoSideNavbarAnchor);
