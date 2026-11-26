@@ -1,10 +1,4 @@
-// Escape user-supplied text before it goes into innerHTML
-const escapeHtml = (value) => String(value ?? '')
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#39;');
+import { escapeHtml } from "./quiz-component";
 
 export class VideoContainer extends HTMLElement {
 

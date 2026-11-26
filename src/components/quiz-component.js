@@ -18,7 +18,7 @@ let quizCount = 0;
  * @returns {string} a string with all literal ampersands, chevrons, double-quotes, and single-quotes
  *                   replaced by the escaped entity.
  */
-const escapeHtml = (value) =>
+export const escapeHtml = (value) =>
   String(value ?? "")
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
