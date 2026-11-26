@@ -239,13 +239,13 @@ export class VideoContainer extends HTMLElement {
 
         if (!liked) return;
 
-        // Remove an old heart if one is still there.
+        /** Remove an old heart if one is still there. */
         const oldHeart = this.querySelector('.video-double-tap-heart');
         if (oldHeart) {
             oldHeart.remove();
         }
 
-        // Create the heart only when the like happens.
+        /** Create a new heart when the like happens. */
         const heart = document.createElement('div');
         heart.className = 'video-double-tap-heart video-icon-overlay is-visible z-3';
         heart.innerHTML = '<i class="bi bi-heart-fill"></i>';

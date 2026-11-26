@@ -1,7 +1,8 @@
 import { db } from '/src/firebaseConfig.js';
 import { onAuthReady } from '/src/authentication.js';
 import {
-    collection, getDocs, query, where, limit, startAfter, doc, getDoc
+    collection, getDocs, query, where, limit, startAfter, doc, getDoc,
+    QueryDocumentSnapshot
 } from 'firebase/firestore';
 import { VideoContainer } from './video-container.js';
 import './video-filters.js';
@@ -9,53 +10,300 @@ import { QuizComponent } from "./quiz-component";
 import { Assignment } from "./assignment";
 import { showLoginModal } from './login-modal.js';
 
+/** 
+ * The video parameter name for adding the video ID to the URL.
+ * 
+ * @type {string} 
+ * @global
+ */
 const VIDEO_PARAM = 'videoId';
 
+/**
+ * The ScrollableVideoManager utilizes other components in this library
+ * to create a video watching interface where users can infinitely
+ * scroll through content uploaded by 'creators.'
+ * 
+ * All of the data for the videos is fetched from Firestore and managed
+ * by this element. 
+ * 
+ * @extends HTMLElement
+ */
 class ScrollableVideoManager extends HTMLElement {
 
+    /**
+     * The assignment element singleton that is a child of this element.
+     *  
+     * @type {Assignment | null} 
+     * @private 
+     */
     #assignmentDOM = null;
+
+    /** 
+     * The quiz element singleton that is a child of this element.
+     * 
+     * @type {QuizComponent | null} 
+     * @private 
+     */
     #quizDOM = null;
 
+    /** 
+     * Holds a queue of video objects.
+     * 
+     * @type {Array<object<any, any>>} 
+     * @private 
+     */
     #queue = [];
+
+    /**
+     * The current position in the queue.
+     * 
+     * @type {number}
+     * @private
+     */
     #queuePosition = 0;
-    #height = 800; // placeholder; replaced by the measured stack height
+
+    /**
+     * The height of the stack, set using value from .clientHeight property.
+     * 
+     * Placeholder value is replaced inside {@link measure}
+     * 
+     * @type {number}
+     * @private
+     */
+    #height = 800;
+
+    /**
+     * Holds a load error message
+     * 
+     * @type {string}
+     * @private
+     */
     #loadError = '';
+
+    /**
+     * Boolean indicating whether the user has interacted
+     * with the application or not.
+     * 
+     * The user must interact with the application before a 
+     * video can autoplay with sound.
+     * 
+     * @type {boolean}
+     * @private
+     */
     #interacted = false;
 
-    // query state
+    /**
+     * An array of the currently selected video filters.
+     * 
+     * @type {Array<string>}
+     * @private
+     */
     #filters = [];
+
+    /**
+     * The current cursor position in videos collection.
+     * 
+     * Holds the snap
+     * 
+     * @type {QueryDocumentSnapshot | null}
+     */
     #cursor = null;
+
+    /**
+     * A boolean indicating whether there are more videos
+     * available to be fetched from the database.
+     * 
+     * @type {boolean}
+     * @private
+     */
     #hasMore = true;
+
+    /**
+     * A boolean indicating whether this element is currently
+     * loading more content from the database.
+     * 
+     * @type {boolean}
+     * @private
+     */
     #loadingMore = false;
+
+    /**
+     * A number representing the amount of requests made to 
+     * Firestore.
+     * 
+     * This number is only incremented; it is incremented in 
+     * .#reload().
+     * 
+     * @type {number}
+     * @private
+     */
     #requestId = 0;
+
+    /**
+     * The limit of the amount of video documents to get in one
+     * query to the database. Default is 10.
+     * 
+     * @type {number} 
+     * @private
+     */
     #pageSize = 10;
 
-    #stack = null; // the div that holds the three videos
+    /**
+     * The div that holds the three <video-container> elements.
+     * 
+     * @type {HTMLElement | null}
+     * @private
+     */
+    #stack = null;
 
+    /**
+     * The last video watched by the user.
+     * 
+     * @type {VideoContainer}
+     * @private
+     */
     #lastVideo;
+
+    /**
+     * The current video being watched by the user.
+     * 
+     * @type {VideoContainer}
+     * @private
+     */
     #currentVideo;
+
+    /**
+     * The next video in the queue that is already on the DOM
+     * waiting for the user to scroll.
+     * 
+     * @type {VideoContainer}
+     * @private
+     */
     #nextVideo;
 
+    /**
+     * A boolean indicating whether the user is currently dragging 
+     * or not.
+     * 
+     * @type {boolean}
+     * @private
+     */
     #dragging = false;
+
+    /**
+     * A boolean indicating whether this element is currently waiting
+     * for a video container to stop animating.
+     * 
+     * @type {boolean}
+     * @private
+     */
     #animating = false;
+
+    /**
+     * The start position of a user drag on the Y axis.
+     * 
+     * Recorded in {@link #onPointerDown} when the user places their finger
+     * on the video or presses their mouse-1 key down.
+     * 
+     * @type {number}
+     * @private
+     */
     #startY = 0;
+
+    /**
+     * The start position of a user drag on the X axis.
+     * 
+     * Recorded in {@link #onPointerDown} when the user places their finger
+     * on the video or presses their mouse-1 key down.
+     * 
+     * @type {number}
+     * @private
+     */
     #startX = 0;
+
+    /**
+     * The current client position on the Y axis minus {@link #startX}.
+     * 
+     * Updated inside {@link #onPointerMove}, every time the user moves their
+     * finger to drag the video up or down.
+     * 
+     * @type {number}
+     * @private
+     */
     #offsetY = 0;
+
+    /**
+     * The amount of time it has been since the user last tapped the screen.
+     * 
+     * Used to calculate whether a double-tap to like is happening, or other
+     * actions.
+     * 
+     * @type {number}
+     * @private
+     */
     #lastTapTime = 0;
+
+    /**
+     * The x-axis coordinate of the last tap position.
+     * 
+     * @type {number}
+     * @private
+     */
     #lastTapX = 0;
+
+    /**
+     * The y-axis coordinate of the last tap position.
+     * 
+     * @type {number}
+     * @private
+     */
     #lastTapY = 0;
+
+    /**
+     * The threshold 
+     */
     #threshold = 100;
+
+    /**
+     * Amount of time to animate the video for when it 
+     * is switched.
+     * 
+     * @type {number}
+     * @private
+     */
     #animationMs = 250;
 
+    /**
+     * The maximum amount of videos to hold in the queue list.
+     * 
+     * @type {number}
+     * @private
+     */
     #maxQueueSize = 100;
 
+    /**
+     * A resize observer to watch for size changes in the 
+     * {@link this.#stack}.
+     * 
+     * @type {ResizeObserver | null}
+     * @private
+     */
     #resizeObserver = null;
-    #stopAuthCheck = null;
-    #checkedAuth = false;
 
-    constructor() {
-        super();
-    }
+    /**
+     * 
+     * @type { | null}
+     * @private
+     */
+    #stopAuthCheck = null;
+
+    /**
+     * A boolean indicating whether authentication has been checked or not.
+     * 
+     * @type {boolean}
+     * @private
+     */
+    #checkedAuth = false;
 
     #onFiltersChange = (event) => {
         this.setFilters(event.detail?.filters ?? []);
@@ -145,6 +393,8 @@ class ScrollableVideoManager extends HTMLElement {
             const snapshot = await getDocs(this.#buildQuery());
             this.#loadError = '';
             this.#hasMore = snapshot.docs.length === this.#pageSize;
+
+            /** Set the cursor the last element in this batch of videos. */
             this.#cursor = snapshot.docs.at(-1) ?? this.#cursor;
 
             return snapshot.docs.map(videoDocument => ({
