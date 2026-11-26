@@ -250,15 +250,14 @@ export class VideoContainer extends HTMLElement {
         heart.className = 'video-double-tap-heart video-icon-overlay is-visible z-3';
         heart.innerHTML = '<i class="bi bi-heart-fill"></i>';
 
+        /** Place the heart inside the 'video wrapper' */
         const videoWrapper = this.firstElementChild;
         if (!videoWrapper) return;
-
         videoWrapper.append(heart);
 
-        // [FRONT END] Remove the heart from the DOM after its animation.
         /**
          * Create an event listener that waits for the 'animationend'
-         * event on the heart element.
+         * event on the heart element before removing the heart element.
          * 
          * once: true means that the event listener will be removed
          * after the event happens 1 time.
