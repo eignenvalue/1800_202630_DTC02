@@ -1072,21 +1072,40 @@ class ScrollableVideoManager extends HTMLElement {
         this.#currentVideo?.playVideo();
     }
 
+    /**
+     * Setup the ScrollableVideoManager when it is added to the DOM.
+     * 
+     * Mutates global state by adding a 'KeyDown' event listener directly 
+     * to the window.
+     * 
+     * @public
+     * @returns {void}
+     */
     connectedCallback() {
-        // filters live inside this element, and their event bubbles
+        /** Filters live inside this element, and their events bubble to this element. */
         this.addEventListener('video-filters-change', this.#onFiltersChange);
+
+        /**  */
         this.addEventListener('video-practice-requested', this.#onAssignmentRequested);
         this.addEventListener('video-quiz-requested', this.#onQuizRequested);
+
         window.addEventListener('keydown', this.#onKey);
 
         if (!this.#stack) this.#buildShell();
         if (!this.#assignmentDOM || !this.#quizDOM) this.#buildPanels();
 
         /**
-         * Create a new ResizeObserver and pass a callback
+         * Create a new ResizeObserver and pass an anonymous callback function
+         * to retain 'this' context (without binding 'this' or other tricks.)
          */
         this.#resizeObserver = new ResizeObserver(() => this.#measure());
+
+        /**
+         * Tell the {@link #resizeObserver} to watch the video stack for changes in height.
+         */
         this.#resizeObserver.observe(this.#stack);
+
+        /** Call {@link #measure} to get the initial stack measurements. */
         this.#measure();
 
         /** Firebase's internals manage the reference to the callback function. */
@@ -1104,6 +1123,12 @@ class ScrollableVideoManager extends HTMLElement {
     /**
      * Runs when the element is removed from the DOM, does cleanup
      * of the onAuthReady/onAuthStateChanged listener.
+     * 
+     * If the element is moved on the DOM disconnectedCallback is run 
+     * before connectedCallback is run, essentially re-initializing the element.
+     * 
+     * This can be prevented (if-needed) by introducing a connectedMoveCallback where 
+     * you can stop that behaviour. 
      * 
      * @public
      * @returns {void}
