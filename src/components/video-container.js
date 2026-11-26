@@ -1,9 +1,39 @@
 import { escapeHtml } from "./quiz-component";
 
+/**
+ * Provides a brand-specific video container that plays a video in the background
+ * with a video title, creator name, video description, tags, and navigation
+ * for taking actions related to the video, such as opening the quiz.
+ * 
+ * Instead of importing VideoElement and VideoSideNavbar, VideoContainer 
+ * uses them both as hard-coded (custom) HTML elements inside {@link render}.
+ * 
+ * @extends HTMLElement
+ */
 export class VideoContainer extends HTMLElement {
 
+    /**
+     * Whether to hide the VideoContainer or not.
+     *  
+     * @private
+     * @type {boolean} 
+     */
     #hide;
+
+    /**
+     * Whether the video is active or not/
+     * 
+     * @private
+     * @type {boolean}
+     */
     #active = false; // true while this is the current, playing video
+
+    /**
+     * Whether the <video> inside VideoElement is paused or not.
+     * 
+     * @private
+     * @type {boolean}
+     */
     #paused = true;
 
     constructor({
@@ -18,11 +48,12 @@ export class VideoContainer extends HTMLElement {
         user_id = "",
         username = "",
         video_url = "",
-    } = {}) {
+    }) {
         super();
 
         this.#hide = false;
 
+        /** Default types for these elements are listed in the constructor */
         this.id = id;
         this.assignment = assignment;
         this.createdAt = created_at;
