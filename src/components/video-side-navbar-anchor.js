@@ -1,5 +1,6 @@
 /**
- * 
+ * The VideoSideNavbarAnchor element is intended to be used by a VideoSideNavbar, 
+ * which is listenning for 'video-nav-action' events from it's children.
  * 
  * @extends HTMLElement
  */
