@@ -15,9 +15,10 @@ import {
  * to take while watching a video, such as liking a video, or opening a
  * quiz.
  * 
- * Each VideoContainer uses a VideoElement as well as a VideoSideNavbar.
- * This is to complete the scrolling effect where the VideoSideNavbar travels
- * upward with the video as the user scrolls to the next/past video.
+ * VideoSideNavbar expects it's children to send events upward that make it
+ * aware of what action(s) the user is trying to take.
+ * 
+ * If it is in a loading state it may reject a request with no warning. 
  * 
  * @extends HTMLElement
  */
@@ -107,7 +108,7 @@ class VideoSideNavbar extends HTMLElement {
      * If the {@link user} is not logged-in the check for a currently liked video will not be run.
      * 
      * @public
-     * @returns {void}
+     * @returns {Promise<void>}
      */
     async loadLikeState() {
         if (!this.videoId) return;
@@ -142,7 +143,7 @@ class VideoSideNavbar extends HTMLElement {
      * Any errors should be handled by the caller.
      * 
      * @public
-     * @returns {boolean} if the video exists in the users likedVideo array
+     * @returns {Promise<boolean>} if the video exists in the users likedVideo array
      */
     async checkIfUserHasLikedCurrentVideo() {
         let likedVideos = [];
@@ -183,7 +184,7 @@ class VideoSideNavbar extends HTMLElement {
      * @param {CustomEvent} event a 'video-nav-action' event with details containing an 
      *                            action type
      * @public
-     * @returns {void}
+     * @returns {Promise<void>}
      */
     async handleNavAction(event) {
         event.preventDefault();
@@ -223,7 +224,7 @@ class VideoSideNavbar extends HTMLElement {
      * corresponding video ID.
      * 
      * @public
-     * @returns {void}
+     * @returns {Promise<void>}
      */
     async handleShareAction() {
         try {
@@ -249,7 +250,8 @@ class VideoSideNavbar extends HTMLElement {
      * 
      * isLiked will be updated inside handleLikeAction, before the return statement.
      * 
-     * @returns {boolean} if {@link handleLikeAction} is successful and {@link isLiked} is true
+     * @public
+     * @returns {Promise<boolean>} true if both {@link handleLikeAction} and {@link isLiked} are true
      */
     async likeVideo() {
         if (this.isLoading) return false;
@@ -263,6 +265,7 @@ class VideoSideNavbar extends HTMLElement {
 
         this.isLoading = true;
         this.render();
+
         const saved = await this.handleLikeAction();
         this.isLoading = false;
         this.render();
@@ -271,8 +274,16 @@ class VideoSideNavbar extends HTMLElement {
     }
 
     /**
+     * Update the user and video documents to reflect the users like status.
      * 
-     * @returns 
+     * This function updates isLiked and likeCount, but expects the caller to rerender
+     * the element.
+     * 
+     * Any errors that occur will be handled by this function.
+     * 
+     * @public
+     * @returns {Promise<boolean>} true if the database has been updated and {@link isLiked} and 
+     *                    {@link likeCount} reflect the most up to date values.
      */
     async handleLikeAction() {
         try {
@@ -296,6 +307,19 @@ class VideoSideNavbar extends HTMLElement {
         }
     }
 
+    /**
+     * Load the users current quiz completion state asynchronously. 
+     * 
+     * Postcondition: {@link quizDone} will reflect the users quiz completion 
+     *                status as a boolean after this method completes execution
+     * 
+     * All errors that occur will be handled by this method.
+     * 
+     * {@link render} will be called no matter what.
+     * 
+     * @public
+     * @returns {Promise<void>}
+     */
     async loadQuizState() {
         if (!this.user || !this.videoId) {
             this.quizDone = false;
@@ -314,6 +338,12 @@ class VideoSideNavbar extends HTMLElement {
         this.render();
     }
 
+    /**
+     * Insert the inner HTML structure of the element into this element.
+     * 
+     * @public
+     * @returns {void}
+     */
     render() {
         this.innerHTML = `
             <nav>
