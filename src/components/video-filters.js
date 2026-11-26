@@ -119,6 +119,7 @@ class VideoFilters extends HTMLElement {
      *    the content accordingly
      * 
      * @param {HTMLElement} chip the filter that was pressed on by the user
+     * @private
      * @returns {void}
      */
     #toggleFilter(chip) {
