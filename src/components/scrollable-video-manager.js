@@ -820,6 +820,7 @@ class ScrollableVideoManager extends HTMLElement {
          */
         const place = (video, base) => {
             video.style.transition = transition;
+            console.log('placed with this transition ', transition);
             video.style.transform = `translateY(${base + offset}px)`;
         };
 
@@ -831,21 +832,42 @@ class ScrollableVideoManager extends HTMLElement {
 
     /**
      * 
+     * 
+     * @private
+     * @returns {void}
      */
     #settle() {
+        console.log('settling');
+
+        this.#layout(0);
         this.#lastVideo.hideVideo();
         this.#lastVideo.stopVideo();
         this.#nextVideo.hideVideo();
         this.#nextVideo.stopVideo();
 
         this.#currentVideo.showVideo();
+
+        /** Only play the video if the user has interacted with the application. */
         if (this.#getInteracted()) {
             this.#playCurrentVideo();
         }
-
-        this.#layout(0);
     }
 
+    /**
+     * Handle a user pointerdown event.
+     * 
+     * This method will begin the tracking of where the users finger is in relation
+     * to where they started the drag, if they endup dragging the page.
+     * 
+     * Sets {@link #interacted} to true, so that other methods can function, and
+     * videos can be played.
+     * 
+     * @param {PointerEvent} event the event containing important details about where
+     *                             the user put their pointer down on the screen (i.e. 
+     *                             event.clientX, event.clientY)
+     * @private
+     * @returns {void}
+     */
     #onPointerDown(event) {
         this.#setInteracted(true);
         if (this.#animating || !this.#currentVideo) return;
@@ -858,43 +880,97 @@ class ScrollableVideoManager extends HTMLElement {
         this.#stack.setPointerCapture(event.pointerId);
     }
 
+    /**
+     * Handle updating the video positions when the user moves their pointer.
+     * 
+     * If the user decides to move their 'pointer' then this function will handle updating the
+     * position of the videos to reflect how far the user has dragged upward or downward on the
+     * screen, based on the positions recorded during the 'pointerdown' event.
+     * 
+     * @param {PointerEvent} event 
+     * @private
+     * @returns {void} 
+     */
     #onPointerMove(event) {
+        /** 
+         * Only handle the event if the user is currently pressing down.
+         * 
+         * If another method has marked the user as having released their pointer
+         * then exit.
+         */
         if (!this.#dragging) return;
 
+        /** 
+         * Dragging toward the bottom of the screen produces a positive offset,
+         * so all elements are move downward.
+         * 
+         * Dragging upward produces a negative offset and the videos are moved (minus 
+         * some amount of pixels) upward.
+         */
         let offset = event.clientY - this.#startY;
+        console.log(offset, event.clientY, this.#startY)
+
+        /** Check if there is a last of next video before assigning any offset above 0. */
         if (offset > 0 && !this.#hasLast) offset = 0;
         if (offset < 0 && !this.#hasNext) offset = 0;
         this.#offsetY = offset;
 
         if (offset > 0) {
+            /** Drag downward */
             this.#lastVideo.showVideo();
             this.#nextVideo.hideVideo();
         } else if (offset < 0) {
+            /** Drag upward */
             this.#nextVideo.showVideo();
             this.#lastVideo.hideVideo();
         }
 
+        /** 
+         * Call layout every time the user moves their pointer so that 
+         * the videos are in the correctly offset position. 
+         */
         this.#layout(offset);
     }
 
+    /**
+     * Determine where to place the videos after the user stops
+     * clicking or dragging the video player.
+     * 
+     * @param {PointerEvent} event 
+     * @private
+     * @returns {void} 
+     */
     #onPointerUp(event) {
         if (!this.#dragging) return;
         this.#dragging = false;
 
+        /** 
+         * If it happens to be a pointercancel event
+         * then keep displaying the current video. 
+         */
         if (event?.type === 'pointercancel') {
             this.#snapBack();
             return;
         }
 
+        /** Determine how many pixels the user moved their finger/cursor. */
         const movedX = Math.abs((event?.clientX ?? this.#startX) - this.#startX);
+
+        /** If the user moved less than 15 pixels call the action a tap. */
         const isTap = Math.abs(this.#offsetY) < 15 && movedX < 15;
 
+        /** Reset the layout */
         if (isTap) {
+            /** Reset the video positions and visibility. */
             this.#layout(0);
             this.#handleTap(event);
             return;
         }
 
+        /** 
+         * Use the threshold to determine if the user has scrolled far enough for 
+         * the video to switch. 
+         */
         if (this.#offsetY > this.#threshold) {
             this.#commit(-1);
         } else if (this.#offsetY < -this.#threshold) {
@@ -1001,8 +1077,17 @@ class ScrollableVideoManager extends HTMLElement {
 
     // ---------- rendering ----------
 
-    // Built once: a centred column (phone-width cap on desktop) whose height is
-    // the viewport minus the bottom navbar. Filters on top, video stack below.
+    /**
+     * Build the HTML shell for this element, this includes adding the video stack
+     * element to the DOM, and attaching event listeners for 'pointerdown', 
+     * 'pointermove', etc, to control the state of the video player.
+     * 
+     * This method is only called one time when the element is first added to the DOM,
+     * in {@link connectedCallback}.
+     * 
+     * @private
+     * @returns {void}
+     */
     #buildShell() {
         this.style.display = 'flex';
         this.style.justifyContent = 'center';
@@ -1038,11 +1123,25 @@ class ScrollableVideoManager extends HTMLElement {
         this.#stack.addEventListener('wheel', e => this.#onWheel(e), { passive: false });
     }
 
-    // Only touches the stack, so the filter bar keeps its state
+    /**
+     * Render the video stack contained inside this element.
+     * 
+     * {@link #buildShell} must be called before this function so that {@link #stack} is defined
+     * when .replaceChildren is called.
+     * 
+     * {@link render} is only called inside of {@link #reload} when the user changes the selected
+     * filters.
+     * 
+     * @public
+     * @returns {void} 
+     */
     render() {
         if (!this.#stack) return;
+
+        /** Try to stop any animations that may occur before the component 'reloads.' */
         this.#dragging = false;
 
+        /** Alert the user on screen (inside the DOM) that there are no videos. */
         if (this.#queue.length === 0) {
             this.#lastVideo = this.#currentVideo = this.#nextVideo = null;
             const message = this.#loadError
@@ -1055,16 +1154,27 @@ class ScrollableVideoManager extends HTMLElement {
             alert.setAttribute('role', 'alert');
             alert.textContent = message;
             this.#stack.replaceChildren(alert);
-            this.#updateUrl(); // removes ?videoId= when there's nothing to show
-            this.#syncPanels(); // closes any panel left open
+
+            /** Remove any videoId from the URL. */
+            this.#updateUrl();
+
+            /** Closes any open panels (Quiz or Assignment components). */
+            this.#syncPanels();
             return;
         }
 
+        /** 
+         * Create a new VideoContainer for each video. Defining the videos here 
+         * allows them to be used by {@link #settle}. 
+         */
         this.#lastVideo = this.#createVideo(this.#queue[this.#queuePosition - 1]);
         this.#currentVideo = this.#createVideo(this.#queue[this.#queuePosition]);
         this.#nextVideo = this.#createVideo(this.#queue[this.#queuePosition + 1]);
 
+        /** Replace any content inside the stack with the three videos. */
         this.#stack.replaceChildren(this.#lastVideo, this.#currentVideo, this.#nextVideo);
+
+        /** Call helper methods to setup proper UI state. */
         this.#measure();
         this.#settle();
         this.#updateUrl();
