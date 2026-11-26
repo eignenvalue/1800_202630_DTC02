@@ -4,8 +4,20 @@ import { db } from "/src/firebaseConfig.js";
 import { doc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 
+/** @type {number} @global */
 let quizCount = 0;
 
+/**
+ * Escape characters into html entities.
+ * 
+ * Normally .replace would only replace the first instance of the character in first 
+ * argument, but the 'g' in the Regex statement means global, and so the replace finds 
+ * all instances throughout the string and replaces them.
+ * 
+ * @param {string} value contains html characters that need to be escaped 
+ * @returns {string} a string with all literal ampersands, chevrons, double-quotes, and single-quotes
+ *                   replaced by the escaped entity.
+ */
 const escapeHtml = (value) =>
   String(value ?? "")
     .replace(/&/g, "&amp;")
@@ -185,4 +197,5 @@ export class QuizComponent extends HTMLElement {
   }
 }
 
+// Define the custom element with CustomElementRegistry.
 customElements.define("quiz-component", QuizComponent);
