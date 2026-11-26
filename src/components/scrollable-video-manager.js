@@ -9,7 +9,7 @@ import { VideoContainer } from './video-container.js';
 import './video-filters.js';
 import { QuizComponent } from "./quiz-component";
 import { Assignment } from "./assignment";
-import { hideLoginModal, showLoginModal } from './login-modal.js';
+import { hideLoginModal, onAuthReadyUserCallback, showLoginModal } from './login-modal.js';
 
 /** 
  * The video parameter name for adding the video ID to the URL.
@@ -293,8 +293,10 @@ class ScrollableVideoManager extends HTMLElement {
     #resizeObserver = null;
 
     /**
+     * Store a Unsubscribe function to disconnect the authentication listener
+     * when this element is removed from the DOM.
      * 
-     * @type { | null}
+     * @type {import('firebase/auth').Unsubscribe | null}
      * @private
      */
     #stopAuthCheck = null;
@@ -1058,8 +1060,16 @@ class ScrollableVideoManager extends HTMLElement {
         this.#syncPanels();
     }
 
-    #playCurrentVideo(event) {
-        this.#currentVideo.playVideo();
+    /**
+     * Play the video currently being shown to the user if 
+     * the function to do so is available.
+     * 
+     * @param {Event} event unused
+     * @private
+     * @returns {void} 
+     */
+    #playCurrentVideo(_event) {
+        this.#currentVideo?.playVideo();
     }
 
     connectedCallback() {
@@ -1070,47 +1080,55 @@ class ScrollableVideoManager extends HTMLElement {
         window.addEventListener('keydown', this.#onKey);
 
         if (!this.#stack) this.#buildShell();
-        if (!this.#assignmentDOM) this.#buildPanels();
+        if (!this.#assignmentDOM || !this.#quizDOM) this.#buildPanels();
 
+        /**
+         * Create a new ResizeObserver and pass a callback
+         */
         this.#resizeObserver = new ResizeObserver(() => this.#measure());
         this.#resizeObserver.observe(this.#stack);
         this.#measure();
 
-        /**
-         * Provide a callback to the onAuthReady function
-         * which wraps firebases onAuthStateChanged, which provides
-         * an easy way to check if a users authentication state has changed.
-         * 
-         * This callback is called if the authentication state of the user changes.
-         */
-        const onAuthReadyUserCallback = (user) => {
-            /** User is null */
-            if (!user) {
-                showLoginModal('Log in or sign up to save your likes and quiz progress, or choose Not now to keep watching.');
-                return;
-            }
-
-            hideLoginModal();
-        }
-
+        /** Firebase's internals manage the reference to the callback function. */
         this.#stopAuthCheck = onAuthReady(onAuthReadyUserCallback);
 
-        // A ?videoId=<id> in the URL is fetched first and shown first.
         const parameters = new URLSearchParams(window.location.search);
+
+        /** Get the current video ID from the URL so that it can be displayed first. */
         const linkedId = parameters.get(VIDEO_PARAM);
+
+        /** Pass the video ID (if any) to reload and (re)load the video player. */
         this.#reload(linkedId);
     }
 
+    /**
+     * Runs when the element is removed from the DOM, does cleanup
+     * of the onAuthReady/onAuthStateChanged listener.
+     * 
+     * @public
+     * @returns {void}
+     */
     disconnectedCallback() {
+        /** Cleanup event listeners */
         this.removeEventListener('video-filters-change', this.#onFiltersChange);
         this.removeEventListener('video-practice-requested', this.#onAssignmentRequested);
         this.removeEventListener('video-quiz-requested', this.#onQuizRequested);
         window.removeEventListener('keydown', this.#onKey);
         this.#resizeObserver?.disconnect();
+
+        /** Call the Unsubscribe function if it exists. */
         this.#stopAuthCheck?.();
 
+        /** 
+         * Manually remove the quizzes and assignments
+         * because they are placed outside of this element
+         * and have not been removed from the DOM with this 
+         * element. 
+         */
         this.#assignmentDOM?.remove();
         this.#quizDOM?.remove();
+
+        /** Set to null to remove references to the DOM elements. */
         this.#assignmentDOM = null;
         this.#quizDOM = null;
     }

@@ -185,5 +185,26 @@ export function hideLoginModal() {
     }
 }
 
+/**
+ * Provide a callback to the onAuthReady function
+ * which wraps firebases onAuthStateChanged, which provides
+ * an easy way to check if a users authentication state has changed.
+ * 
+ * This callback is called if the authentication state of the user changes.
+ * 
+ * @param {object} user a well-formed user object (Google is giving it to us, 
+ *                      I assume it's well formed)
+ */
+export const onAuthReadyUserCallback = (user) => {
+    /** User is null */
+    if (!user) {
+        showLoginModal('Log in or sign up to save your likes and quiz progress, or choose Not now to keep watching.');
+        return;
+    }
+
+    hideLoginModal();
+}
+
+
 // Register the custom element with the CustomElementRegistry.
 customElements.define('login-modal', LoginModal);
