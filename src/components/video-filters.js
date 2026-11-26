@@ -105,9 +105,21 @@ class VideoFilters extends HTMLElement {
     }
 
     /**
+     * Toggle a filter on/off.
      * 
-     * @param {*} chip
-     * @ 
+     * This function does a few things:
+     * 1) Gets the name of the filter from the {@link chip}'s dataset.
+     * 2) Creates a new URL with window.location and either removes or
+     *    attaches the filter depending on if it was already selected 
+     *    or not.
+     * 3) Replaces the global URL state with the updated URL.
+     * 4) Toggles classes on the chip element to represent that it is selected.
+     * 5) Dispatches and event with the updated list of selected filters so that
+     *    a parent (i.e. ScrollableVideoManager) can catch the event and update
+     *    the content accordingly
+     * 
+     * @param {HTMLElement} chip the filter that was pressed on by the user
+     * @returns {void}
      */
     #toggleFilter(chip) {
         const name = chip.dataset.filter;
@@ -131,9 +143,21 @@ class VideoFilters extends HTMLElement {
         this.dispatchUpdateEvent();
     }
 
+    /**
+     * Render the filters and attach event listeners to respond to user actions.
+     * 
+     * This function should be further broken down, but its arguably fine
+     * since, as mentioned in the ClassDoc, the lifetime of this element
+     * matches that of the page load, and {@link render} is only called one time
+     * in {@link connectedCallback}.
+     * 
+     * @public
+     * @returns {void}
+     */
     render() {
         this.style.display = 'block';
 
+        /** Add a style block to the DOM. Keeps styles for this element connected to this element. */
         const style = document.createElement('style');
         style.textContent = `
             video-filters .video-filters-scroller {
@@ -145,10 +169,12 @@ class VideoFilters extends HTMLElement {
             }
             video-filters .video-filters-scroller::-webkit-scrollbar { height: 4px; }
             video-filters .video-filters-scroller::-webkit-scrollbar-track { background: #22222225; margin: 0 10px; }
-            video-filters .video-filter-off { background-color: rgb(0, 0, 0, 0.2); }
             video-filters .video-filters-scroller.dragging { cursor: grabbing; }
+
+            video-filters .video-filter-off { background-color: rgb(0, 0, 0, 0.2); }
         `;
 
+        /** A div that contains the filters list and has a styled scrollbar. */
         const scroller = document.createElement('div');
         scroller.className = 'video-filters-scroller';
 
@@ -179,61 +205,119 @@ class VideoFilters extends HTMLElement {
         scroller.appendChild(list);
         this.replaceChildren(style, scroller);
 
-        // taps and clicks
-        scroller.addEventListener('click', (event) => {
-            if (this.#didDrag) return; // that was a drag, not a click
-            const chip = event.target.closest('button[data-filter]');
-            if (chip) this.#toggleFilter(chip);
-        });
-
         // mouse drag-to-scroll (touch already scrolls natively)
+        /**
+         * Use pointerdown to track the potential for a drag.
+         * 
+         * mouse drag-to-scroll (touch already scrolls natively)
+         */
         scroller.addEventListener('pointerdown', (event) => {
-            if (event.pointerType !== 'mouse') return;
+            if (event.pointerType != 'mouse') return;
             this.#pointerIsDown = true;
             this.#didDrag = false;
             this.#dragStartX = event.clientX;
             this.#dragStartScroll = scroller.scrollLeft;
         });
 
+        /**
+         * Add a click event to the scroller element that will
+         * check if the user clicked a filter and toggle that filter
+         * on/off.
+         */
+        scroller.addEventListener('click', (event) => {
+            // Find the closest element that sports the data-filter attribute.
+            const chip = event.target.closest('button[data-filter]');
+            if (chip) this.#toggleFilter(chip);
+        });
+
+        /**
+         * Only consider it a drag event if the scroller has been dragged more than 5 pixels.
+         * 
+         * Adds class 'dragging' to scroller which turns the users pointer into cursor: 'grabbing'.
+         */
         scroller.addEventListener('pointermove', (event) => {
             if (!this.#pointerIsDown) return;
+
+            /** 
+             * Calculate the difference between the position where the drag 
+             * started and where the current clientX is during this event.
+             */
             const dx = event.clientX - this.#dragStartX;
 
             if (!this.#didDrag && Math.abs(dx) > 5) {
                 this.#didDrag = true;
                 scroller.classList.add('dragging');
+
+                /** 
+                 * setPointerCapture is used here to allow the user to keep scrolling the filters
+                 * even if their cursor has exited the elements bounds.
+                 * 
+                 * The 'pointerup' event on {@link scroller} releases the pointer capture, instead
+                 * of manually calling scroller.releasePointerCapture().
+                 */
                 scroller.setPointerCapture(event.pointerId);
             }
+
+            /**
+             * Explicitly update and control the horizontal scroll position based on
+             * the values found in the 'pointerdown' and 'pointermove' events.
+             * 
+             * Without this line the scrollLeft position of the 'scroller' <div>
+             * does not change.
+             */
             if (this.#didDrag) scroller.scrollLeft = this.#dragStartScroll - dx;
         });
 
+        /**
+         * End the dragging state by resetting properties to their inactive
+         * states.
+         * 
+         * @returns {void}
+         */
         const endDrag = () => {
             if (!this.#pointerIsDown) return;
             this.#pointerIsDown = false;
             scroller.classList.remove('dragging');
-            // let the click event that follows a drag be ignored, then reset
-            setTimeout(() => { this.#didDrag = false; }, 0);
+            this.#didDrag = false;
         };
+
         scroller.addEventListener('pointerup', endDrag);
         scroller.addEventListener('pointercancel', endDrag);
 
-        // vertical mouse wheel scrolls the chips sideways
+        /**
+         * Wheel Event: Vertical mouse wheel scrolls the chips sideways
+         * 
+         * passive: false tells the browser that "I might use event.preventDefault()"
+         * setting it to true means that you will NOT use event.preventDefault()
+         * it is used here because the default behaviour of scrolling is scrolling 
+         * downward on the main page axis. 
+         */
         scroller.addEventListener('wheel', (event) => {
             if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
-            event.preventDefault();
+            event.preventDefault(); // <- uses .preventDefault()
             scroller.scrollLeft += event.deltaY;
         }, { passive: false });
-
     }
 
+    /**
+     * Setup the VideoFilters after they are added to the DOM.
+     * 
+     * Get any 'pre-selected' filters from the URL and record them
+     * before rendering the filters.
+     * 
+     * This method dispatches an update event so that the filter data
+     * can be passed to the parent as soon as it is available.
+     * 
+     * @public
+     * @returns {void}
+     */
     connectedCallback() {
-        this.render();
-
         const url = new URL(window.location);
         const result = url.searchParams.getAll('filter');
         result.forEach(item => this.#selected.add(item));
 
         this.dispatchUpdateEvent();
+        this.render();
     }
 }
 
