@@ -2,7 +2,8 @@ import { db } from '/src/firebaseConfig.js';
 import { onAuthReady } from '/src/authentication.js';
 import {
     collection, getDocs, query, where, limit, startAfter, doc, getDoc,
-    QueryDocumentSnapshot
+    QueryDocumentSnapshot,
+    Query
 } from 'firebase/firestore';
 import { VideoContainer } from './video-container.js';
 import './video-filters.js';
@@ -376,7 +377,8 @@ class ScrollableVideoManager extends HTMLElement {
     /**
      * Set {@link #interacted} to a different value (true/false).
      * 
-     * The value passed will be coverted to a Boolean.
+     * The value passed will be coverted to a Boolean before assigning
+     * to {@link #interacted}.
      * 
      * @param {boolean} value 
      * @private
@@ -386,10 +388,23 @@ class ScrollableVideoManager extends HTMLElement {
         this.#interacted = Boolean(value);
     }
 
+    /**
+     * Check if the user has interacted with the application.
+     * 
+     * @private
+     * @returns {boolean} a boolean indicating whether the user has interacted
+     *                    with the screen application yet
+     */
     #getInteracted() {
         return this.#interacted;
     }
 
+    /**
+     * Go to the next video, if it is available.
+     * 
+     * @public
+     * @returns {void}
+     */
     goNext() {
         this.#setInteracted(true);
 
@@ -401,6 +416,12 @@ class ScrollableVideoManager extends HTMLElement {
         }
     }
 
+    /**
+     * Go to the previous video, it it is available.
+     * 
+     * @public
+     * @returns {void}
+     */
     goPrevious() {
         this.#setInteracted(true);
 
@@ -414,11 +435,30 @@ class ScrollableVideoManager extends HTMLElement {
 
     // ---------- querying ----------
 
+    /**
+     * Assign {@link #filters} to a shallow copy of the Array
+     * passed as {@link filters}.
+     * 
+     * @param {Array<string>} filters
+     * @public
+     * @returns {Promise<void>} 
+     */
     async setFilters(filters) {
         this.#filters = [...filters];
         await this.#reload();
     }
 
+    /**
+     * Build a query based on the selected filters.
+     * 
+     * Use the {@link cursor} to identify where the query should start
+     * in the database (i.e. after the cursor document). The cursor
+     * is the last document that was fetched (and that this element must 
+     * already have the data for).
+     * 
+     * @private
+     * @returns {Query} a query for videos with specific constraints
+     */
     #buildQuery() {
         const constraints = [];
 
@@ -428,20 +468,35 @@ class ScrollableVideoManager extends HTMLElement {
             constraints.push(where('tags', 'array-contains-any', this.#filters.slice(0, 30)));
         }
 
-        console.log('cursor', this.#cursor)
         if (this.#cursor) constraints.push(startAfter(this.#cursor));
         constraints.push(limit(this.#pageSize));
 
         return query(collection(db, 'videos'), ...constraints);
     }
 
+    /**
+     * Load a {@link #pageSize} list of videos to add to
+     * the queue.
+     * 
+     * The {@link cursor} position is updated if there is at least
+     * one video found from the query.
+     * 
+     * {@link #hasMore} will be updated to indicate whether there
+     * are more posts available in the database, based on if
+     * there were {@link #pageSize} elements returned in the last 
+     * query.
+     * 
+     * @public
+     * @returns {Promise<Array<object> | Array>} An empty array is returned if no
+     *                                           videos are found in the database 
+     */
     async loadQueueByPage() {
         try {
             const snapshot = await getDocs(this.#buildQuery());
             this.#loadError = '';
             this.#hasMore = snapshot.docs.length === this.#pageSize;
 
-            /** Set the cursor the last element in this batch of videos. */
+            /** Sets the cursor to the last element in this batch of videos. */
             this.#cursor = snapshot.docs.at(-1) ?? this.#cursor;
 
             return snapshot.docs.map(videoDocument => ({
@@ -449,14 +504,20 @@ class ScrollableVideoManager extends HTMLElement {
                 ...videoDocument.data(),
             }));
         } catch (error) {
-            console.error('Could not load videos from Firestore:', error);
-            this.#loadError = 'Videos could not be loaded. Check your Firestore permissions and try again.';
+            this.#loadError = 'Could not load videos. Please try again later.';
+            window.alert(this.#loadError);
             this.#hasMore = false;
             return [];
         }
     }
 
-    // Fetch one specific video by id; null if missing or unreadable
+    /**
+     * Fetch one specific video by ID.
+     * 
+     * @param {string} id the video id as a string
+     * @returns {Promise<object | null>} null if the video document cannot be 
+     *                                   found
+     */
     async #fetchVideoById(id) {
         if (!id) return null;
         try {
@@ -468,7 +529,17 @@ class ScrollableVideoManager extends HTMLElement {
         }
     }
 
-    // Mirror the current video into the address bar without adding history entries
+    /**
+     * Update the URL to reflect the video the user is currently watching.
+     * 
+     * .replaceState makes it so that you cannot navigate forward
+     * or backward through past video pages by using the backward/forward
+     * browser navigation buttons, the page state is replaced each time a 
+     * new/past video is shown on the video player.
+     * 
+     * @private
+     * @returns {void}
+     */
     #updateUrl() {
         const id = this.#queue[this.#queuePosition]?.id;
         const url = new URL(window.location.href);
@@ -479,44 +550,102 @@ class ScrollableVideoManager extends HTMLElement {
             url.searchParams.delete(VIDEO_PARAM);
         }
 
+        /** Exit if the URL already reflects the current video. */
+        if (url == window.location.href) return;
+
         window.history.replaceState(window.history.state, '', url);
     }
 
+    /**
+     * Clear the queue and fetch new content to be displayed
+     * to the user.
+     * 
+     * If there is a pinned video it will be fetched specifically so that
+     * it can be displayed to the user first.
+     * 
+     * Called when the element is added to the DOM in {@link connectedCallback},
+     * and when the user changes their selected video filters.
+     * 
+     * @param {string} pinnedId the id that was already in the URL, if present
+     * @private
+     * @returns {Promise<void>}
+     */
     async #reload(pinnedId = null) {
+        /** 
+         * Prepend {@link #requestId} so that the value stored 
+         * inside is the same as {@link requestId} 
+         */
         const requestId = ++this.#requestId;
 
+        /** Clear any recorded data related to the queue. */
         this.#queue = [];
         this.#queuePosition = 0;
         this.#cursor = null;
         this.#hasMore = true;
 
-        // fetch the linked video and the first page of the feed in parallel
+        /** 
+         * Fetch the pinned video, and a list videos related to the specified
+         * filters...unpack the results from the array eventually returned by 
+         * Promise.all().
+         */
         const [pinned, firstPage] = await Promise.all([
             this.#fetchVideoById(pinnedId),
             this.loadQueueByPage(),
         ]);
 
+        /** 
+         * If the user has since updated the filters {@link #reload} may have
+         * been called again, where {@link #requestId} would have been reassigned
+         * a new value.
+         */
         if (requestId !== this.#requestId) return;
 
-        // linked video goes first; drop it from the feed so it isn't shown twice
+        /**
+         * Add the videos the queue.
+         * 
+         * If pinned is not undefined, ensure that the pinned video is removed 
+         * from the list of videos if present so that the user is not shown 
+         * the same video twice.
+         */
         this.#queue = pinned
             ? [pinned, ...firstPage.filter(video => video.id !== pinned.id)]
             : firstPage;
 
+        /** Re-render the page with the new content. */
         this.render();
     }
 
+    /**
+     * Load more videos into the queue, while keeping
+     * repeats from being presented to the user.
+     * 
+     * @private
+     * @returns {Promise<void>}
+     */
     async #loadMore() {
         if (this.#loadingMore || !this.#hasMore) return;
+
+        /** 
+         * If the {@link #requestId} has changed, stop the operation. 
+         * 
+         * This could really only happen if this call has set {@link #loadingMore}
+         * to false, and inside {@link loadQueueByPage} {@link #hasMore} is set to
+         * true. Since this call sets loadingMore to true, which would block the
+         * subsequent call from doing any fetching.
+        */
         this.#loadingMore = true;
         const requestId = this.#requestId;
-
         const nextPage = await this.loadQueueByPage();
         this.#loadingMore = false;
         if (requestId !== this.#requestId) return;
 
-        // later pages can contain the linked video, so dedupe against the queue
+        /** A set of video IDs that are already in the queue. */
         const have = new Set(this.#queue.map(video => video.id));
+
+        /** 
+         * Filter the new videos into the queue by checking if they are NOT in {@link have} set.
+         * Spread the {@link #queue} and filtered array into a new {@link #queue} array.
+         */
         this.#queue = [...this.#queue, ...nextPage.filter(video => !have.has(video.id))];
 
         this.#trimQueue();
@@ -526,6 +655,11 @@ class ScrollableVideoManager extends HTMLElement {
     // Drop the oldest items so the queue stays within #maxQueueSize.
     // Always keeps the video just behind the current one, because its
     // element is still in the stack and swiping back needs it.
+    /**
+     * Keep the queue at length {@link #maxQueueSize} or less.
+     * 
+     * @returns 
+     */
     #trimQueue() {
         const excess = this.#queue.length - this.#maxQueueSize;
         if (excess <= 0) return;
@@ -889,4 +1023,5 @@ class ScrollableVideoManager extends HTMLElement {
     }
 }
 
+// Define the custom element with CustomElementRegistry.
 customElements.define('scrollable-video-manager', ScrollableVideoManager);
