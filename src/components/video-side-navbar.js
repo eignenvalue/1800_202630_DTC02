@@ -79,8 +79,9 @@ class VideoSideNavbar extends HTMLElement {
     }
 
     /**
-     * If the video-id happens to change then update the like and quiz completion state, 
-     * but this shouldn't happen.
+     * If the video-id changes then update the like and quiz completion state to reflect
+     * the proper state for the new video; 'video-id' isn't expected to change on a 
+     * VideoSideNavbar.
      * 
      * @param {string} name the name of the attribute that has changed
      * @param {string | null} oldValue the old value of the attribute as a string or null
@@ -97,9 +98,11 @@ class VideoSideNavbar extends HTMLElement {
 
     /**
      * Load the like state for the logged in user.
+
+     * Changes {@link likeCount} and {@link isLiked} if the operation fails or if it is successful.
      * 
-     * Query the Firestore database using getDoc to obtain a document refernce to the document
-     * within the videos collection using the {@link videoId} (videos/123j123j1312J) .
+     * The caller will not be made aware of any errors, the element will attempt to function
+     * and assume the failing call was 'unlucky'.
      * 
      * If the {@link user} is not logged-in the check for a currently liked video will not be run.
      * 
@@ -136,8 +139,7 @@ class VideoSideNavbar extends HTMLElement {
     /**
      * Check if the user has liked the curretn {@link video}.
      * 
-     * Attempts to get the users liked videos array by reading a snapshot of the
-     * users document from the database.
+     * Any errors should be handled by the caller.
      * 
      * @public
      * @returns {boolean} if the video exists in the users likedVideo array
@@ -217,22 +219,22 @@ class VideoSideNavbar extends HTMLElement {
     }
 
     /**
+     * Copy the URL to the users clipboard with ONLY the videoId param and the 
+     * corresponding video ID.
      * 
-     * @
+     * @public
      * @returns {void}
      */
     async handleShareAction() {
         try {
             // Start with a clean URL so none of the current URL parameters can
             // accidentally be carried into the copied link.
-            const shareUrl = new URL(window.location.pathname, window.location.origin);
-
-            // Create a new query string containing only the video ID.
-            const shareParameters = new URLSearchParams();
-            shareParameters.set('videoId', this.videoId);
-            shareUrl.search = shareParameters.toString();
+            const { pathname, origin } = window.location;
+            const shareUrl = new URL(pathname, origin);
+            shareUrl.searchParams.set('videoId', this.videoId);
 
             // Ask the browser to copy the completed link to the clipboard.
+            // Works because of recent user gesture.
             await navigator.clipboard.writeText(shareUrl.toString());
             window.alert('Video link copied to your clipboard.');
         } catch (error) {
@@ -241,8 +243,14 @@ class VideoSideNavbar extends HTMLElement {
         }
     }
 
-    // Used by a double tap on the video. Double tapping can add a like,
-    // but it does not remove an existing like.
+    /**
+     * Used by a double tap on the video. Double tapping can add a like,
+     * but it does not remove an existing like.
+     * 
+     * isLiked will be updated inside handleLikeAction, before the return statement.
+     * 
+     * @returns {boolean} if {@link handleLikeAction} is successful and {@link isLiked} is true
+     */
     async likeVideo() {
         if (this.isLoading) return false;
 
@@ -262,6 +270,10 @@ class VideoSideNavbar extends HTMLElement {
         return saved && this.isLiked;
     }
 
+    /**
+     * 
+     * @returns 
+     */
     async handleLikeAction() {
         try {
             const videoRef = doc(db, 'videos', this.videoId);
