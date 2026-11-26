@@ -186,11 +186,11 @@ export function hideLoginModal() {
 }
 
 /**
- * Provide a callback to the onAuthReady function
- * which wraps firebases onAuthStateChanged, which provides
- * an easy way to check if a users authentication state has changed.
+ * Use this function as a callback for the onAuthReady function.
  * 
- * This callback is called if the authentication state of the user changes.
+ * This callback is called if the authentication state of the user changes,
+ * and updates the screen to show or hide the login modal based on whether
+ * the user is logged-in or not.
  * 
  * @param {object} user a well-formed user object (Google is giving it to us, 
  *                      I assume it's well formed)

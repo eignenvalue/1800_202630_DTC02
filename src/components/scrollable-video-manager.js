@@ -1075,7 +1075,7 @@ class ScrollableVideoManager extends HTMLElement {
     /**
      * Setup the ScrollableVideoManager when it is added to the DOM.
      * 
-     * Mutates global state by adding a 'KeyDown' event listener directly 
+     * Mutates global state by adding a 'keydown' event listener directly 
      * to the window.
      * 
      * @public
@@ -1085,10 +1085,11 @@ class ScrollableVideoManager extends HTMLElement {
         /** Filters live inside this element, and their events bubble to this element. */
         this.addEventListener('video-filters-change', this.#onFiltersChange);
 
-        /**  */
+        /** These events bubble from the VideoSideNavbar inside a videos VideoContainer. */
         this.addEventListener('video-practice-requested', this.#onAssignmentRequested);
         this.addEventListener('video-quiz-requested', this.#onQuizRequested);
 
+        /** Attach a global window event listener for 'keydown' events. */
         window.addEventListener('keydown', this.#onKey);
 
         if (!this.#stack) this.#buildShell();
