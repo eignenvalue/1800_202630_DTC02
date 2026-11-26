@@ -300,14 +300,6 @@ class ScrollableVideoManager extends HTMLElement {
     #stopAuthCheck = null;
 
     /**
-     * A boolean indicating whether authentication has been checked or not.
-     * 
-     * @type {boolean}
-     * @private
-     */
-    #checkedAuth = false;
-
-    /**
      * Catch the 'video-filters-change' event and see if the
      * event details contains an updated filters array.
      * 
@@ -1094,13 +1086,11 @@ class ScrollableVideoManager extends HTMLElement {
         const onAuthReadyUserCallback = (user) => {
             /** User is null */
             if (!user) {
-                this.checkedAuth = false;
                 showLoginModal('Log in or sign up to save your likes and quiz progress, or choose Not now to keep watching.');
                 return;
             }
 
             hideLoginModal();
-            this.#checkedAuth = true;
         }
 
         this.#stopAuthCheck = onAuthReady(onAuthReadyUserCallback);
