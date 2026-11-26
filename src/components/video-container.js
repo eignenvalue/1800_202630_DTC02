@@ -1,4 +1,4 @@
-import { escapeHtml } from "./quiz-component";
+import { escapeHtml } from "../app.js";
 
 /**
  * Provides a brand-specific video container that plays a video in the background
