@@ -26,6 +26,9 @@ const VIDEO_PARAM = 'videoId';
  * All of the data for the videos is fetched from Firestore and managed
  * by this element. 
  * 
+ * This component is a bit of a frankenstein, and a VideoStackManager should
+ * be considered.
+ * 
  * @extends HTMLElement
  */
 class ScrollableVideoManager extends HTMLElement {
@@ -831,14 +834,16 @@ class ScrollableVideoManager extends HTMLElement {
     }
 
     /**
+     * Place all videos in their rightful position, and hide videos the user 
+     * cannot and should not be able to see.
      * 
+     * This method will attempt to play the video if the user has interacted with
+     * the application.
      * 
      * @private
      * @returns {void}
      */
     #settle() {
-        console.log('settling');
-
         this.#layout(0);
         this.#lastVideo.hideVideo();
         this.#lastVideo.stopVideo();
@@ -847,7 +852,7 @@ class ScrollableVideoManager extends HTMLElement {
 
         this.#currentVideo.showVideo();
 
-        /** Only play the video if the user has interacted with the application. */
+        /** Only play the current video if the user has interacted with the application. */
         if (this.#getInteracted()) {
             this.#playCurrentVideo();
         }
@@ -980,26 +985,54 @@ class ScrollableVideoManager extends HTMLElement {
         }
     }
 
+    /**
+     * Handle a user tap on the video stack ({@link #stack}).
+     * 
+     * @param {PointerEvent} event 
+     * @private
+     * @returns {void} 
+     */
     #handleTap(event) {
         const now = Date.now();
         const x = event?.clientX ?? this.#startX;
         const y = event?.clientY ?? this.#startY;
+
+        /** Amount of time that has elapsed since the last time the user tapped the screen. */
         const timeSinceLastTap = now - this.#lastTapTime;
+
+        /** 
+         * The distance between the last tap coordinate and this taps coordinate. 
+         * 
+         * Calculate hypotenuse of right triangle: sqrt(a^2 + b^2 + ...)
+        */
         const distanceFromLastTap = Math.hypot(x - this.#lastTapX, y - this.#lastTapY);
 
+        /** 
+         * If the user has tapped in roughly the same position before this tap (in the past 350ms)
+         * then call the action a double-tap. 
+         */
         if (timeSinceLastTap > 0 && timeSinceLastTap <= 350 && distanceFromLastTap <= 60) {
             this.#lastTapTime = 0;
             this.#currentVideo?.likeFromDoubleTap();
             return;
         }
 
+        /** Pause or play the current video. */
         this.#currentVideo.handleTap();
 
+        /** Record information about the tap incase the user taps again quickly (for double-tap). */
         this.#lastTapTime = now;
         this.#lastTapX = x;
         this.#lastTapY = y;
     }
 
+    /**
+     * Handle a wheel event on the video stack ({@link #stack}).
+     * 
+     * @param {WheelEvent} event
+     * @private 
+     * @returns {void} 
+     */
     #onWheel(event) {
         this.#setInteracted(true);
         event.preventDefault();
