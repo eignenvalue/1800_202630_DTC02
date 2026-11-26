@@ -10,45 +10,113 @@ import {
     setDoc,
 } from 'firebase/firestore';
 
+/**
+ * The VideoSideNavbar is an element that displays options for a user
+ * to take while watching a video, such as liking a video, or opening a
+ * quiz.
+ * 
+ * VideoSideNavbar expects it's children to send events upward that make it
+ * aware of what action(s) the user is trying to take.
+ * 
+ * If it is in a loading state it may reject a request with no warning. 
+ * 
+ * @extends HTMLElement
+ */
 class VideoSideNavbar extends HTMLElement {
+
     constructor() {
         super();
+
+        /** @type {User} @public */
         this.user = null;
+
+        /** @type {boolean} @public */
         this.isLiked = false;
+
+        /** @type {boolean} @public */
         this.quizDone = false;
+
+        /** @type {number} @public */
         this.likeCount = 0;
+
+        /** @type {boolean} @public */
         this.isLoading = true;
+
+        /** @type {function | null} @public */
         this.unsubscribeFromAuth = null;
+
+        /** @type {function} @public */
         this.handleNavAction = this.handleNavAction.bind(this);
     }
 
+    /**
+     * Returns a list of attributes to watch for changes. 
+     * 
+     * @public
+     * @returns {Array<string>}
+     */
     static get observedAttributes() {
         return ['video-id'];
     }
 
+    /**
+     * The video ID as a string.
+     * 
+     * @public
+     * @type {string | null} 
+     */
     get videoId() {
         return this.getAttribute('video-id');
     }
 
+    /**
+     * Set the video ID attribute.
+     * 
+     * @public
+     * @type {string}
+     */
     set videoId(value) {
         this.setAttribute('video-id', value);
     }
 
+    /**
+     * If the video-id changes then update the like and quiz completion state to reflect
+     * the proper state for the new video; 'video-id' isn't expected to change on a 
+     * VideoSideNavbar.
+     * 
+     * @param {string} name the name of the attribute that has changed
+     * @param {string | null} oldValue the old value of the attribute as a string or null
+     * @param {string | null} newValue the new value of the attribute as a string or null
+     * @public
+     * @returns {void} 
+     */
     attributeChangedCallback(name, oldValue, newValue) {
-        // Only re-render after the element is in the DOM
-        if (oldValue !== newValue && this.isConnected) {
+        if (oldValue !== newValue) {
             this.loadLikeState();
             this.loadQuizState();
         }
     }
 
+    /**
+     * Load the like state for the logged in user.
+
+     * Changes {@link likeCount} and {@link isLiked} if the operation fails or if it is successful.
+     * 
+     * The caller will not be made aware of any errors, the element will attempt to function
+     * and assume the failing call was 'unlucky'.
+     * 
+     * If the {@link user} is not logged-in the check for a currently liked video will not be run.
+     * 
+     * @public
+     * @returns {Promise<void>}
+     */
     async loadLikeState() {
         if (!this.videoId) return;
 
         this.isLoading = true;
-        this.render();
 
         try {
+
             const videoSnapshot = await getDoc(doc(db, 'videos', this.videoId));
 
             if (!videoSnapshot.exists()) {
@@ -56,15 +124,9 @@ class VideoSideNavbar extends HTMLElement {
             }
 
             const video = videoSnapshot.data();
-            let likedVideos = [];
-            if (this.user) {
-                const userSnapshot = await getDoc(doc(db, 'users', this.user.uid));
-                likedVideos = userSnapshot.data()?.liked_videos || [];
-            }
-            this.isLiked = likedVideos.includes(this.videoId);
-            this.likeCount = Number.isInteger(video.like_count)
-                ? video.like_count
-                : 0;
+
+            this.likeCount = Number.isInteger(video.like_count) ? video.like_count : 0;
+            this.isLiked = this.user ? await this.checkIfUserHasLikedCurrentVideo() : false;
         } catch (error) {
             console.error('Could not load the video like state:', error);
             this.isLiked = false;
@@ -75,6 +137,33 @@ class VideoSideNavbar extends HTMLElement {
         }
     }
 
+    /**
+     * Check if the user has liked the curretn {@link video}.
+     * 
+     * Any errors should be handled by the caller.
+     * 
+     * @public
+     * @returns {Promise<boolean>} if the video exists in the users likedVideo array
+     */
+    async checkIfUserHasLikedCurrentVideo() {
+        let likedVideos = [];
+
+        if (this.user) {
+            const userSnapshot = await getDoc(doc(db, 'users', this.user.uid));
+            likedVideos = userSnapshot.data()?.liked_videos || [];
+        }
+
+        return likedVideos.includes(this.videoId);
+    }
+
+    /**
+     * Emit custom events from this element.
+     * 
+     * @param {string} name the name of the event
+     * @param {object} detail information the event will carry and provide to the listener that catches it
+     * @public
+     * @returns {void}
+     */
     emit(name, detail = {}) {
         this.dispatchEvent(new CustomEvent(name, {
             bubbles: true,
@@ -83,6 +172,20 @@ class VideoSideNavbar extends HTMLElement {
         }));
     }
 
+    /**
+     * The 'video-nav-action' event is handled by this method.
+     * 
+     * This function expects specific types of actions to be tried, and
+     * will try to complete the corresponding action to satisfy the user.
+     * 
+     * event.detail.action is used without question here because the VideoSideNavbarAnchor
+     * emitter always emits with the key action.
+     * 
+     * @param {CustomEvent} event a 'video-nav-action' event with details containing an 
+     *                            action type
+     * @public
+     * @returns {Promise<void>}
+     */
     async handleNavAction(event) {
         event.preventDefault();
 
@@ -94,7 +197,6 @@ class VideoSideNavbar extends HTMLElement {
         }
 
         this.isLoading = true;
-        this.render();
 
         switch (event.detail.action) {
             case 'like':
@@ -117,18 +219,23 @@ class VideoSideNavbar extends HTMLElement {
         this.render();
     }
 
+    /**
+     * Copy the URL to the users clipboard with ONLY the videoId param and the 
+     * corresponding video ID.
+     * 
+     * @public
+     * @returns {Promise<void>}
+     */
     async handleShareAction() {
         try {
             // Start with a clean URL so none of the current URL parameters can
             // accidentally be carried into the copied link.
-            const shareUrl = new URL(window.location.pathname, window.location.origin);
-
-            // Create a new query string containing only the video ID.
-            const shareParameters = new URLSearchParams();
-            shareParameters.set('videoId', this.videoId);
-            shareUrl.search = shareParameters.toString();
+            const { pathname, origin } = window.location;
+            const shareUrl = new URL(pathname, origin);
+            shareUrl.searchParams.set('videoId', this.videoId);
 
             // Ask the browser to copy the completed link to the clipboard.
+            // Works because of recent user gesture.
             await navigator.clipboard.writeText(shareUrl.toString());
             window.alert('Video link copied to your clipboard.');
         } catch (error) {
@@ -137,8 +244,15 @@ class VideoSideNavbar extends HTMLElement {
         }
     }
 
-    // Used by a double tap on the video. Double tapping can add a like,
-    // but it does not remove an existing like.
+    /**
+     * Used by a double tap on the video. Double tapping can add a like,
+     * but it does not remove an existing like.
+     * 
+     * isLiked will be updated inside handleLikeAction, before the return statement.
+     * 
+     * @public
+     * @returns {Promise<boolean>} true if both {@link handleLikeAction} and {@link isLiked} are true
+     */
     async likeVideo() {
         if (this.isLoading) return false;
 
@@ -151,6 +265,7 @@ class VideoSideNavbar extends HTMLElement {
 
         this.isLoading = true;
         this.render();
+
         const saved = await this.handleLikeAction();
         this.isLoading = false;
         this.render();
@@ -158,6 +273,18 @@ class VideoSideNavbar extends HTMLElement {
         return saved && this.isLiked;
     }
 
+    /**
+     * Update the user and video documents to reflect the users like status.
+     * 
+     * This function updates isLiked and likeCount, but expects the caller to rerender
+     * the element.
+     * 
+     * Any errors that occur will be handled by this function.
+     * 
+     * @public
+     * @returns {Promise<boolean>} true if the database has been updated and {@link isLiked} and 
+     *                    {@link likeCount} reflect the most up to date values.
+     */
     async handleLikeAction() {
         try {
             const videoRef = doc(db, 'videos', this.videoId);
@@ -179,6 +306,20 @@ class VideoSideNavbar extends HTMLElement {
             return false;
         }
     }
+
+    /**
+     * Load the users current quiz completion state asynchronously. 
+     * 
+     * Postcondition: {@link quizDone} will reflect the users quiz completion 
+     *                status as a boolean after this method completes execution
+     * 
+     * All errors that occur will be handled by this method.
+     * 
+     * {@link render} will be called no matter what.
+     * 
+     * @public
+     * @returns {Promise<void>}
+     */
     async loadQuizState() {
         if (!this.user || !this.videoId) {
             this.quizDone = false;
@@ -197,6 +338,12 @@ class VideoSideNavbar extends HTMLElement {
         this.render();
     }
 
+    /**
+     * Insert the inner HTML structure of the element into this element.
+     * 
+     * @public
+     * @returns {void}
+     */
     render() {
         this.innerHTML = `
             <nav>
@@ -215,23 +362,46 @@ class VideoSideNavbar extends HTMLElement {
                 </ul>
             </nav>
         `;
-    } 
+    }
 
+    /**
+     * If the user is not logged in the anonymous function passed to onAuthStateChanged
+     * will set {@link user} to null.
+     * 
+     * The video-nav-action event is an event sent by VideoSideNavbarAnchors indicating that
+     * the user wants to take a specific action such as liking a video or opening an assignment popup.
+     *  
+     * Rather than pipe-drill different methods, this listener will catch those events and do
+     * something with the data inside {@link handleNavAction}.
+     * 
+     * {@link unsubscribeFromAuth} is also assigned a Unsubscribe 
+     * 
+     * @public
+     * @returns {void}
+     */
     connectedCallback() {
         this.addEventListener('video-nav-action', this.handleNavAction);
-        this.render();
-
         this.unsubscribeFromAuth = onAuthStateChanged(auth, (user) => {
             this.user = user;
             this.loadLikeState();
             this.loadQuizState();
         });
+
+        this.render();
     }
 
+    /**
+     * Removes the video-nav-action event listener, 
+     * and calls unsubscribeFromAuth (if it is not null)
+     * 
+     * @public
+     * @returns {void}
+     */
     disconnectedCallback() {
         this.removeEventListener('video-nav-action', this.handleNavAction);
         this.unsubscribeFromAuth?.();
     }
 }
 
+// Define the custom element with CustomElementRegistry.
 customElements.define('video-side-navbar', VideoSideNavbar);

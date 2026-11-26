@@ -4,9 +4,21 @@ import { db } from "/src/firebaseConfig.js";
 import { doc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 
+/** @type {number} @global */
 let quizCount = 0;
 
-const escapeHtml = (value) =>
+/**
+ * Escape characters into html entities.
+ * 
+ * Normally .replace would only replace the first instance of the character in first 
+ * argument, but the 'g' in the Regex statement means global, and so the replace finds 
+ * all instances throughout the string and replaces them.
+ * 
+ * @param {string} value contains html characters that need to be escaped 
+ * @returns {string} a string with all literal ampersands, chevrons, double-quotes, and single-quotes
+ *                   replaced by the escaped entity.
+ */
+export const escapeHtml = (value) =>
   String(value ?? "")
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
@@ -36,29 +48,22 @@ export class QuizComponent extends HTMLElement {
   #render() {
     const questions = this.#quiz;
 
-    const body = questions.length
-      ? questions
-        .map((q, qIndex) => {
-          const name = `${this.#uid}-q${qIndex}`;
-          const type = q.type === "checkbox" ? "checkbox" : "radio";
-          const options = (q.possibleAnswers ?? [])
-            .map(
-              (option, i) => `
-            <div class="each-quiz form-check">
-              <input class="form-check-input" type="${type}" name="${name}" id="${name}-${i}" value="${i}" />
-              <label class="form-check-label" for="${name}-${i}">${escapeHtml(option)}</label>
-            </div>`,
-            )
-            .join("");
+    const body = questions.length ? questions.map((q, qIndex) => {
+      const name = `${this.#uid}-q${qIndex}`;
+      const type = q.type === "checkbox" ? "checkbox" : "radio";
+      const options = (q.possibleAnswers ?? []).map((option, i) => `
+        <div class="each-quiz form-check">
+          <input class="form-check-input" type="${type}" name="${name}" id="${name}-${i}" value="${i}" />
+          <label class="form-check-label" for="${name}-${i}">${escapeHtml(option)}</label>
+        </div>`,
+      ).join("");
 
-          return `
+      return `
             <div class="quiz">
               <h1 class="question">${escapeHtml(q.question)}</h1>
               ${options}
             </div>`;
-        })
-        .join("") +
-      `
+    }).join("") + `
           <div class="text-center">
             <button class="btn btn-primary mt-5" type="submit">Submit</button>
             <p class="score mt-3 fs-4"></p>
@@ -192,4 +197,5 @@ export class QuizComponent extends HTMLElement {
   }
 }
 
+// Define the custom element with CustomElementRegistry.
 customElements.define("quiz-component", QuizComponent);
