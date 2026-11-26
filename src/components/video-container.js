@@ -53,7 +53,7 @@ export class VideoContainer extends HTMLElement {
 
         this.#hide = false;
 
-        /** Default types for these elements are listed in the constructor */
+        /** Default types and values for below elements are listed in the constructor. */
         this.id = id;
         this.assignment = assignment;
         this.createdAt = created_at;
@@ -67,58 +67,79 @@ export class VideoContainer extends HTMLElement {
         this.video_url = video_url;
     }
 
-    // Toggle display instead of re-rendering so the <video-element>
-    // keeps its state (loaded, playing, etc.)
+    /**
+     * Hide the video without changing video state.
+     * 
+     * @public
+     * @returns {void}
+     */
     hideVideo() {
         this.#hide = true;
         this.style.display = 'none';
     }
 
+    /**
+     * Show the video.
+     * 
+     * @public
+     * @returns {void}
+     */
     showVideo() {
         this.#hide = false;
         this.style.display = 'block';
     }
 
+    /**
+     * Get the private field member this.#hide which
+     * represent whether the video is currently hidden 
+     * or not.
+     * 
+     * @public
+     * @type {boolean}
+     */
     get isHidden() {
         return this.#hide;
     }
 
     // Finds the <video> inside <video-element> (light DOM or shadow DOM)
-    #findVideo() {
-        const el = this.querySelector('video-element');
-        return el?.querySelector('video') ?? el?.shadowRoot?.querySelector('video') ?? null;
-    }
 
-    // <video-element> may build its <video> a moment after it's attached,
-    // so retry for a few frames before giving up
-    #withVideo(action, tries = 10) {
-        const video = this.#findVideo();
-        if (video) return action(video);
-        if (tries > 0 && this.isConnected) {
-            requestAnimationFrame(() => this.#withVideo(action, tries - 1));
-        }
+    /**
+     * Find the video element on the page.
+     * 
+     * @returns {HTMLVideoElement | null}
+     */
+    #findVideo() {
+        return this.querySelector('video') ?? null;
     }
 
     playVideo() {
         this.#active = true;
         this.#paused = false;
-        this.#withVideo(video => {
-            if (!this.#active) return; // moved out of view while waiting
-            video.play().catch(error => console.warn('Could not autoplay video:', error));
-        });
+
+        try {
+            this.#findVideo().play();
+        } catch (error) {
+            window.alert('Error: Could not autoplay video. Please reload the page.')
+        }
+
+        this.displayPauseIcon(false);
+    }
+
+    displayPauseIcon(display = true) {
         const play = this.querySelector('.pause-icon')
         if (!play) return;
-        play.classList.remove('is-visible')
+        play.classList.toggle('is-visible', display)
     }
 
     pauseVideo() {
         this.#paused = true;
-        this.#withVideo(video => {
-            video.pause();
-        });
-        const play = this.querySelector('.pause-icon')
-        if (!play) return;
-        play.classList.add('is-visible')
+        try {
+            this.#findVideo().pause();
+        } catch (error) {
+            window.alert('Error: Could not autoplay video. Please reload the page.')
+        }
+
+        this.displayPauseIcon();
     }
 
     handleTap() {
@@ -137,14 +158,15 @@ export class VideoContainer extends HTMLElement {
     // Pause and rewind so it starts from the beginning next time it's shown
     stopVideo() {
         this.#active = false;
-        this.#withVideo(video => {
-            if (this.#active) return; // became current again while waiting
+        try {
+            const video = this.#findVideo();
             video.pause();
             video.currentTime = 0;
-        });
-        const play = this.querySelector('.pause-icon')
-        if (!play) return;
-        play.classList.remove('is-visible')
+        } catch (error) {
+            window.alert('Error: Could not autoplay video. Please reload the page.')
+        }
+
+        this.displayPauseIcon(true)
     }
 
     async likeFromDoubleTap() {
@@ -218,6 +240,13 @@ export class VideoContainer extends HTMLElement {
         `;
     }
 
+    /**
+     * Setup styles and call {@link render} when the element
+     * is added to the DOM.
+     * 
+     * @public
+     * @returns {void}
+     */
     connectedCallback() {
         // each container is stacked on top of the others, fills the stack,
         // and is moved with transform
@@ -226,7 +255,12 @@ export class VideoContainer extends HTMLElement {
         this.render();
     }
 
-    // Removed from the DOM (e.g. on filter change): detached videos can keep playing audio
+    /**
+     * Stop the video when the element is removed from the DOM.
+     * 
+     * @public
+     * @returns {void}
+     */
     disconnectedCallback() {
         this.stopVideo();
     }

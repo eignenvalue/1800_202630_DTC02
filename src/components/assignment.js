@@ -43,7 +43,6 @@ export class Assignment extends HTMLElement {
 
   }
 
-
   /**
    * Build the HTML shell for the assignment.
    * 
