@@ -795,20 +795,26 @@ class ScrollableVideoManager extends HTMLElement {
     }
 
     /**
+     * Handle placing videos from the stack on the DOM.
      * 
-     * @param {number} offset the amount of offset to apply to the elements position
-     *                        during the  
-     * @param {*} animate 
+     * @param {number} offset the amount of offset, in pixels to apply to the elements Y position
+     *                        during user dragging, or after mwheeldown scroll, or a desktop video navigation
+     *                        button click
+     * @param {boolean} animate if true a transform animation is applied to all videos 
+     *                          so that the video can move to their positions automatically 
+     * @private
+     * @returns {void}
      */
     #layout(offset = 0, animate = false) {
         const transition = animate ? `transform ${this.#animationMs}ms ease` : 'none';
 
         /**
-         * 
+         * Place the videos in their proper positions on the DOM using a transition 
+         * and translateY, either with or without animation.
          * 
          * @param {VideoContainer} video the video to apply the styles too
-         * @param {number} base the starting Y position of the video before 
-         *                      the position translation
+         * @param {number} base the height of the video stack as one component of the ending 
+         *                      Y position of the video after the position translation
          * @private
          * @returns {void}
          */
@@ -816,11 +822,16 @@ class ScrollableVideoManager extends HTMLElement {
             video.style.transition = transition;
             video.style.transform = `translateY(${base + offset}px)`;
         };
+
+        /** Place each video in it's proper position. */
         place(this.#lastVideo, -this.#height);
         place(this.#currentVideo, 0);
         place(this.#nextVideo, this.#height);
     }
 
+    /**
+     * 
+     */
     #settle() {
         this.#lastVideo.hideVideo();
         this.#lastVideo.stopVideo();
