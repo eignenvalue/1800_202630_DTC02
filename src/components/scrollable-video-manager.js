@@ -1029,15 +1029,24 @@ class ScrollableVideoManager extends HTMLElement {
     /**
      * Handle a wheel event on the video stack ({@link #stack}).
      * 
+     * Display the next video if there is one, and the last video if there is one, and so on, 
+     * by determining how far the user has scrolled their fingers on the trackpad, or if they 
+     * have scrolled their mousewheel down.
+     * 
+     * Sometimes trackpad scrolling will return -0; this is assumed to be an accidental scroll.
+     * 
+     * This method prevents default scrolling behaviour on the {@link #stack} element.
+     * 
      * @param {WheelEvent} event
      * @private 
-     * @returns {void} 
+     * @returns {void}
      */
     #onWheel(event) {
         this.#setInteracted(true);
         event.preventDefault();
         if (this.#animating || this.#dragging || !this.#currentVideo) return;
 
+        console.log(event.deltaY);
         if (event.deltaY > 0 && this.#hasNext) {
             this.#nextVideo.showVideo();
             this.#commit(1);
@@ -1047,41 +1056,97 @@ class ScrollableVideoManager extends HTMLElement {
         }
     }
 
+    /**
+     * Snap the videos into their proper position after a drag is released.
+     * 
+     * Sets a timeout to settle the videos after the animation is applied and 
+     * eventually completed.
+     * 
+     * Note that an earlier setTimeout call could end the animation early for a second animation 
+     * that was started before a past animation was set to complete.
+     * 
+     * Adding a guard like if (this.#animating == true) would block subsequent requests
+     * to animate the videos, and it would be likely {@link #settle} will run before 
+     * that animation gets to begin (settle calls {@link #layout} with animation=false).
+     * 
+     * @private
+     * @returns {void}
+     */
     #snapBack() {
         this.#animating = true;
         this.#layout(0, true);
+
         setTimeout(() => {
             this.#animating = false;
             if (!this.#dragging) this.#settle();
         }, this.#animationMs);
     }
 
+    /**
+     * Force the browser to do a layout recalculation by accessing a single DOM layout property.
+     * 
+     * This sets a baseline for the positions of the video in the DOM by having the browser calculate
+     * all styles and mark them as clean.
+     * 
+     * When the transition styles are applied in {@link #layout} that style will once again
+     * become marked as dirty, so the browser will apply the new styles on the next render
+     * and the animation can begin properly. 
+     * 
+     * Without the recalculation it is possible that the browser never sees the starting state of 
+     * `transform` if `transform` was already marked as dirty before the new transform value is set 
+     * in {@link #layout}.
+     * 
+     * @private
+     * @returns {void}
+     */
     #flushStyles() {
         // Reading a layout property forces a synchronous style/layout recalculation.
         void this.#stack.offsetWidth;
     }
 
+    /**
+     * Commit to moving the video player in a specific direction. This method will always animate the videos.
+     * 
+     * Sets a timeout to commit to the new video positions using {@link #rotateForward}/{@link #rotateBackward}.
+     * 
+     * {@link #flushStyles} is used here 
+     * 
+     * @param {number} direction 1 is forward, and anything else is backward. 
+     * @private
+     * @returns {void}
+     */
     #commit(direction) {
         this.#animating = true;
         this.#flushStyles();
 
         this.#layout(-direction * this.#height, true);
+
+        /** Create a local version of the current {@link #requestId} that can be checked later. */
         const requestId = this.#requestId;
+
         setTimeout(() => {
-            if (requestId !== this.#requestId) {
-                this.#animating = false;
-                return;
-            }
+            if (requestId !== this.#requestId) return this.#animating = false;
 
             if (direction === 1) {
                 this.#rotateForward();
             } else {
                 this.#rotateBackward();
             }
+
             this.#animating = false;
         }, this.#animationMs);
     }
 
+    /**
+     * Move the video player forward one position in the {@link #queue}.
+     * 
+     * If there is no video after the next video then an empty VideoContainer
+     * will be appended to the DOM and the user will not be able to scroll to 
+     * view that element.
+     * 
+     * @private
+     * @returns {void}
+     */
     #rotateForward() {
         this.#lastVideo.remove();
         this.#lastVideo = this.#currentVideo;
@@ -1096,6 +1161,16 @@ class ScrollableVideoManager extends HTMLElement {
         if (this.#queue.length - 1 - this.#queuePosition <= 2) this.#loadMore();
     }
 
+    /**
+     * Move the video player back one position in the {@link #queue}.
+     * 
+     * If there is no video before the past video then an empty VideoContainer
+     * will be appended to the DOM and the user will not be able to scroll to 
+     * view that element.
+     * 
+     * @private
+     * @returns {void}
+     */
     #rotateBackward() {
         this.#nextVideo.remove();
         this.#nextVideo = this.#currentVideo;
