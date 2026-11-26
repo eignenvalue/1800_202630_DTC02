@@ -19,9 +19,8 @@ import { showLoginModal } from './login-modal.js';
 const VIDEO_PARAM = 'videoId';
 
 /**
- * The ScrollableVideoManager utilizes other components in this library
- * to create a video watching interface where users can infinitely
- * scroll through content uploaded by 'creators.'
+ * Provide the user with a video watching interface where they can
+ * infinitely scroll through educational content uploaded by 'creators.'
  * 
  * All of the data for the videos is fetched from Firestore and managed
  * by this element. 
@@ -274,7 +273,7 @@ class ScrollableVideoManager extends HTMLElement {
     #animationMs = 250;
 
     /**
-     * The maximum amount of videos to hold in the queue list.
+     * The maximum amount of videos to hold in the {@link #queue} list.
      * 
      * @type {number}
      * @private
@@ -283,7 +282,7 @@ class ScrollableVideoManager extends HTMLElement {
 
     /**
      * A resize observer to watch for size changes in the 
-     * {@link this.#stack}.
+     * {@link #stack}.
      * 
      * @type {ResizeObserver | null}
      * @private
@@ -305,21 +304,60 @@ class ScrollableVideoManager extends HTMLElement {
      */
     #checkedAuth = false;
 
+    /**
+     * Catch the 'video-filters-change' event and see if the
+     * event details contains an updated filters array.
+     * 
+     * If so set the filters to the new array, otherwise clear
+     * the filters.
+     * 
+     * @param {CustomEvent} event 
+     * @private
+     * @returns {void}
+     */
     #onFiltersChange = (event) => {
         this.setFilters(event.detail?.filters ?? []);
     }
 
-    #onAssignmentRequested = (event) => {
+    /**
+     * Pauses the video and shows the assignment popup.
+     * 
+     * @param {CustomEvent} _event 'video-practice-requested', 
+     *                             event parameter is unused
+     * @private
+     * @returns {void}
+     */
+    #onAssignmentRequested = (_event) => {
         this.#currentVideo.pauseVideo();
         this.#assignmentDOM.show();
     }
 
-    #onQuizRequested = () => {
+    /**
+     * Pauses the video and shows the quiz popup.
+     * 
+     * @param {CustomEvent} _event 'video-quiz-requested',
+     *                             event parameter is unused
+     * @private
+     * @returns {void}
+     */
+    #onQuizRequested = (_event) => {
         this.#currentVideo.pauseVideo();
         this.#quizDOM.show();
     }
 
-    // desktop keyboard navigation
+    /**
+     * Event handler for any desktop keyboard navigation of
+     * the application. Changes the current video on-screen 
+     * to the next, or last video.
+     * 
+     * event.preventDefault() is used to prevent any default 
+     * scrolling behaviour caused by pressing 'ArrowUp' or
+     * 'ArrowDown'.
+     * 
+     * @param {Event} event 
+     * @private
+     * @returns {void}
+     */
     #onKey = (event) => {
         if (this.#animating || this.#dragging || !this.#currentVideo) return;
         if (event.target.closest?.('input, textarea, select')) return;
@@ -335,8 +373,17 @@ class ScrollableVideoManager extends HTMLElement {
         }
     };
 
+    /**
+     * Set {@link #interacted} to a different value (true/false).
+     * 
+     * The value passed will be coverted to a Boolean.
+     * 
+     * @param {boolean} value 
+     * @private
+     * @returns {void}
+     */
     #setInteracted(value) {
-        this.#interacted = value;
+        this.#interacted = Boolean(value);
     }
 
     #getInteracted() {

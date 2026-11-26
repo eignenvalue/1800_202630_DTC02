@@ -22,7 +22,7 @@ export class VideoContainer extends HTMLElement {
     #hide;
 
     /**
-     * Whether the video is active or not/
+     * Whether the video is active or not.
      * 
      * @private
      * @type {boolean}
