@@ -5,7 +5,11 @@
 
 LearnTok is a client side web application that uses a Firestore database to record user data such as accounts, posted videos, completed quizzes, liked videos and more.
 
-The goal of the application is to provide you with the same quick snippets of content that other apps do but with an educational twist.
+The goal of the application is to provide any user with quick snippets of education content that they can then test themselves on immediatley, or just scroll to the next video.
+
+The application features a scrollable video page where a user can infinitely scroll through content uploaded by creators. Each piece of content is a video, and each video can have 1 practice document and quiz attached for the user to read and complete.
+
+A creator is someone who has been verified as having a degree in a specific field, among other qualities.
 
 ## Technologies Used
 
@@ -50,6 +54,7 @@ Once the application is running:
 - Currently there is no creator side to the application.
 - Other users profile cannot be visited (even 'creator' accounts).
 - Users can only complete a small set of the originally intended actions.
+- There is no financial incentive for creators to upload on this platform.
 
 ## Future Work
 
