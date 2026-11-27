@@ -167,7 +167,7 @@ export class Assignment extends HTMLElement {
     const url = new URL(window.location);
     url.searchParams.set("assignmentOpen", 1);
     window.history.replaceState({}, "", url);
-    this.style.display = "block";
+    this.hidden = false;
   }
 
   /**
@@ -187,7 +187,7 @@ export class Assignment extends HTMLElement {
     const url = new URL(window.location);
     url.searchParams.delete("assignmentOpen");
     window.history.replaceState({}, "", url);
-    this.style.display = "none";
+    this.hidden = true;
   }
 }
 
