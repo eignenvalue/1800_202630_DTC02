@@ -44,9 +44,6 @@ class VideoSideNavbar extends HTMLElement {
 
         /** @type {function | null} @public */
         this.unsubscribeFromAuth = null;
-
-        /** @type {function} @public */
-        this.handleNavAction = this.handleNavAction.bind(this);
     }
 
     /**
