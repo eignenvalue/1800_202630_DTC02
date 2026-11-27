@@ -8,20 +8,81 @@ import { escapeHtml } from "../app.js";
 /** @type {number} @global */
 let quizCount = 0;
 
+/**
+ * The QuizComponent provides an overlay for the home/video page
+ * that appears when the user requests to take a quiz.
+ * 
+ * This class is to be used as a singleton and has public methods
+ * for updating the quiz content.
+ * 
+ * @extends HTMLElement
+ */
 export class QuizComponent extends HTMLElement {
-  #uid = `quiz${quizCount++}`; // unique per instance, used for input names
+
+  /**
+   * A random unique ID for each quiz instance that 'passes through' this element.
+   * 
+   * Uses to identify input names.
+   * 
+   * @private
+   * @type {string}
+   */
+  #uid = `quiz${quizCount++}`;
+
+  /**
+   * An array of quiz questions as objects.
+   * 
+   * @private
+   * @type {Array<object> | Array}
+   */
   #quiz = [];
-  #styled = false;
+
+  /**
+   * An object containing information about the 
+   * authenticated user.
+   * 
+   * @private
+   * @type {object | undefined}
+   */
   #currentUser = undefined;
+
+  /**
+   * A boolean indicating whether the quiz has been requested or not. 
+   * 
+   * @private
+   * @type {boolean}
+   */
   #quizRequested = false;
+
+  /**
+   * 
+   * @type {import("firebase/auth").Unsubscribe | null}
+   */
   #stopAuthCheck = null;
 
+  /** 
+   * Is set from outside by a video manager.
+   * 
+   * @public
+   * @type {string | null}
+  */
   quizId = null; // the video id; plain data, no longer used for input names
 
+  /**
+   * Get the current array of quiz questions.
+   */
   get quiz() {
     return this.#quiz;
   }
 
+  /**
+   * Update the current quiz questions by passing a new Array of questions.
+   * 
+   * Sets private member {@link #quiz}.
+   *
+   * @public
+   * @type {Array<object> | Array}
+   */
   set quiz(value) {
     this.#quiz = Array.isArray(value) ? value : [];
     if (this.isConnected) this.#render();
@@ -73,6 +134,21 @@ export class QuizComponent extends HTMLElement {
     }
   }
 
+  /**
+   * Check the users quiz answers against the correct answers, and add their
+   * quiz submission to the database.
+   * 
+   * Note:
+   * 1) The quiz is not cleared when it is submitted
+   * 2) you can keep clicking submit infinitely to make requests to firebase 
+   *    and upload more of the same results.
+   * 
+   * Deter the user from trying the quiz too many times by disabling the quiz button until
+   * they scroll away from the video and the quiz is reinitialized.
+   * 
+   * @public
+   * @returns {void}
+   */
   checkAnswers() {
     let score = 0;
 
@@ -95,7 +171,8 @@ export class QuizComponent extends HTMLElement {
       }
     }
     const user = getAuth().currentUser;
-    const videoId = this.quizId || new URL(window.location).searchParams.get("video");
+    console.log('here here', this.quizId);
+    const videoId = this.quizId || new URLSearchParams(window.location).get("video");
 
     if (user && videoId) {
       updateDoc(doc(db, "users", user.uid), {
@@ -108,39 +185,58 @@ export class QuizComponent extends HTMLElement {
     }
   }
 
+  /**
+   * Applies styles to this element and then creates an onAuthReady callback
+   * that populates {@link #stopAuthCheck} as a Firebase Unsubscribe function.
+   * 
+   * @public
+   * @returns {void}
+   */
   connectedCallback() {
+    /** Apply classes and styles to this element. */
     this.style.display = "none";
+    this.style.backgroundColor = "Black";
+    this.style.zIndex = "100";
+    this.style.overflowY = "auto";
+    this.classList.add("position-fixed", "top-0", "start-0", "w-100", "h-100", "pb-5");
 
-    if (!this.#styled) {
-      this.classList.add("position-fixed", "top-0", "start-0", "w-100", "h-100", "pb-5");
-      this.style.backgroundColor = "Black";
-      this.style.zIndex = "100";
-      this.style.overflowY = "auto";
-      this.#styled = true;
-    }
-
-    // Check the Firebase login state before opening a requested quiz.
+    /**
+     * Change quiz visibility when authentication state changes.
+     * 
+     * ScrollableVideoManager shows the login modal on it's own.
+     * 
+     * This callback fires once immediatley so checking {@link #quizRequested}
+     * is false is required so the quiz isn't immediatley shown to a logged in user.
+     */
     this.#stopAuthCheck = onAuthReady((user) => {
       this.#currentUser = user;
 
       if (!this.#quizRequested) return;
 
-      if (!user) {
-        showLoginModal("Please log in before starting this quiz.");
-      } else {
-        this.#openQuiz();
-      }
+      user ? this.show() : this.hide();
     });
 
-    this.#render(); // renders the empty state and hides, even if quiz was never set
+    this.#render();
 
-    // A quiz opened from a saved URL must pass the same login check.
+    /** 
+     * If the quiz is meant to be open try to open it, {@link show} 
+     * will block the request if the user is not logged in. 
+     */
     const url = new URL(window.location);
     if (url.searchParams.get("quizOpen")) {
       this.show();
     }
   }
 
+  /**
+   * Check if the user is logged in before opening the quiz page.
+   * 
+   * If the user is not logged in this method will show a modal telling
+   * the user to login before starting the quiz.
+   * 
+   * @public
+   * @returns {void}
+   */
   show() {
     this.#quizRequested = true;
 
@@ -155,6 +251,17 @@ export class QuizComponent extends HTMLElement {
     this.#openQuiz();
   }
 
+  /**
+   * Open the quiz by settings the display style of this element to "block".
+   * 
+   * This method mutates global state by updating the URL to reflect the quiz being open.
+   * This is for subsequent page reloads where the user might want to quiz 'page' to stay open.
+   * 
+   * This method is to be called from {@link show}
+   * 
+   * @private
+   * @returns {void}
+   */
   #openQuiz() {
     const url = new URL(window.location);
     url.searchParams.set("quizOpen", 1);
@@ -162,6 +269,15 @@ export class QuizComponent extends HTMLElement {
     this.style.display = "block";
   }
 
+  /**
+   * Hide the quiz by setting the display style of this element to "block".
+   * 
+   * This method mutates global state by updating the URL to reflect the quiz being open.
+   * This is for subsequent page reloads where the user might want to quiz 'page' to stay open.
+   * 
+   * @private
+   * @returns {void}
+   */
   hide() {
     this.#quizRequested = false;
     const url = new URL(window.location);
@@ -170,11 +286,16 @@ export class QuizComponent extends HTMLElement {
     this.style.display = "none";
   }
 
+  /**
+   * Call Unsubscribe on the auth check callback, and lose reference to the
+   * Unsubscribe method and current user.
+   * 
+   * @public
+   * @returns {void}
+   */
   disconnectedCallback() {
-    if (this.#stopAuthCheck) {
-      this.#stopAuthCheck();
-      this.#stopAuthCheck = null;
-    }
+    this.#stopAuthCheck?.();
+    this.#stopAuthCheck = null;
     this.#currentUser = undefined;
   }
 }

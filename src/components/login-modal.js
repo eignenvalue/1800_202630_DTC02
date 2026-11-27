@@ -198,7 +198,7 @@ export function hideLoginModal() {
 export const onAuthReadyUserCallback = (user) => {
     /** User is null */
     if (!user) {
-        showLoginModal('Log in or sign up to save your likes and quiz progress, or choose Not now to keep watching.');
+        showLoginModal('Log in or sign up to save your likes and quiz progress, or choose "Not now" to keep watching.');
         return;
     }
 
