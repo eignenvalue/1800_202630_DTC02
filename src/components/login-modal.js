@@ -160,6 +160,7 @@ class LoginModal extends HTMLElement {
  * displayed, or by creating a new one if no instance exists on the DOM yet.
  * 
  * @param {string} message a message to show to the user in the login modal
+ * @global
  * @returns {void}
  */
 export function showLoginModal(message) {
@@ -170,6 +171,40 @@ export function showLoginModal(message) {
     }
     modal.showPopup(message);
 }
+
+/**
+ * Hide the login modal when the user logs in in another tab.
+ * 
+ * @global
+ * @returns {void}
+ */
+export function hideLoginModal() {
+    let modal = document.querySelector('login-modal');
+    if (modal) {
+        modal.hide();
+    }
+}
+
+/**
+ * Use this function as a callback for the onAuthReady function.
+ * 
+ * This callback is called if the authentication state of the user changes,
+ * and updates the screen to show or hide the login modal based on whether
+ * the user is logged-in or not.
+ * 
+ * @param {object} user a well-formed user object (Google is giving it to us, 
+ *                      I assume it's well formed)
+ */
+export const onAuthReadyUserCallback = (user) => {
+    /** User is null */
+    if (!user) {
+        showLoginModal('Log in or sign up to save your likes and quiz progress, or choose "Not now" to keep watching.');
+        return;
+    }
+
+    hideLoginModal();
+}
+
 
 // Register the custom element with the CustomElementRegistry.
 customElements.define('login-modal', LoginModal);

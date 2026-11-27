@@ -32,6 +32,7 @@ export class Assignment extends HTMLElement {
    * Set the private field #assignmentText to a new string, or an
    * empty string if the argument passed is NOT a string.
    * 
+   * Setter
    * @type {string} 
    */
   set assignmentText(value) {
@@ -42,7 +43,6 @@ export class Assignment extends HTMLElement {
     }
 
   }
-
 
   /**
    * Build the HTML shell for the assignment.
