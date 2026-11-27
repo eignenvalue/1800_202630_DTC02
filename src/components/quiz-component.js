@@ -109,10 +109,10 @@ export class QuizComponent extends HTMLElement {
       ).join("");
 
       return `
-            <div class="quiz">
-              <h1 class="question">${escapeHtml(q.question)}</h1>
-              ${options}
-            </div>`;
+        <div class="quiz">
+          <h1 class="question">${escapeHtml(q.question)}</h1>
+          ${options}
+        </div>`;
     }).join("") + `
           <div class="text-center">
             <button class="btn btn-primary mt-5" type="submit">Submit</button>
