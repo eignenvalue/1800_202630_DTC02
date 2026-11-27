@@ -88,12 +88,19 @@ export class QuizComponent extends HTMLElement {
     if (this.isConnected) this.#render();
   }
 
+  /**
+   * Render the quiz component.
+   * 
+   * @private
+   * @returns {void}
+   */
   #render() {
     const questions = this.#quiz;
-
     const body = questions.length ? questions.map((q, qIndex) => {
       const name = `${this.#uid}-q${qIndex}`;
       const type = q.type === "checkbox" ? "checkbox" : "radio";
+
+      /** Map each possible answer into an array (of strings) and join the strings. */
       const options = (q.possibleAnswers ?? []).map((option, i) => `
         <div class="each-quiz form-check">
           <input class="form-check-input" type="${type}" name="${name}" id="${name}-${i}" value="${i}" />
@@ -110,41 +117,42 @@ export class QuizComponent extends HTMLElement {
           <div class="text-center">
             <button class="btn btn-primary mt-5" type="submit">Submit</button>
             <p class="score mt-3 fs-4"></p>
-          </div>`
-      : '<p class="m-3">No quiz for this video.</p>';
+          </div>` : '<p class="m-3">No quiz for this video.</p>';
 
     this.innerHTML = `
-      <form novalidate>
+      <form>
         <button type="button" class="close">x</button>
         ${body}
       </form>`;
 
+    /** Attach onclick event handler to the 'x' button. */
     this.querySelector(".close").onclick = () => {
       this.hide();
     }
 
+    /**
+     * Add an event listener for the quiz submission that passes responsibility
+     * to {@link checkAnswers}.
+     */
     this.querySelector("form").addEventListener("submit", (event) => {
+      /** Prevent the page from reloading */
       event.preventDefault();
       this.checkAnswers();
     });
-
-    const url = new URL(window.location);
-    if (!url.searchParams.get("quizOpen")) {
-      this.style.display = "none";
-    }
   }
 
   /**
    * Check the users quiz answers against the correct answers, and add their
    * quiz submission to the database.
    * 
-   * Note:
-   * 1) The quiz is not cleared when it is submitted
-   * 2) you can keep clicking submit infinitely to make requests to firebase 
-   *    and upload more of the same results.
-   * 
-   * Deter the user from trying the quiz too many times by disabling the quiz button until
-   * they scroll away from the video and the quiz is reinitialized.
+   * Fix:
+   * 1) The quiz is not cleared when it is submitted.
+   * 2) You can keep clicking submit infinitely to make requests to firebase 
+   *    and upload more of the same results, each time a result is uploaded it 
+   *    overwrites the most recent user quiz, the users can only store 1 record for
+   *    each quiz at any time. Deter the user from trying the quiz too many times 
+   *    by disabling the quiz button until they scroll away from the video and the 
+   *    quiz is reinitialized.
    * 
    * @public
    * @returns {void}
@@ -170,9 +178,9 @@ export class QuizComponent extends HTMLElement {
         scoreEl.textContent = `You got ${score} out of ${this.#quiz.length} !`;
       }
     }
+
     const user = getAuth().currentUser;
-    console.log('here here', this.quizId);
-    const videoId = this.quizId || new URLSearchParams(window.location).get("video");
+    const videoId = this.quizId || new URLSearchParams(window.location.search).get("video");
 
     if (user && videoId) {
       updateDoc(doc(db, "users", user.uid), {
@@ -186,8 +194,15 @@ export class QuizComponent extends HTMLElement {
   }
 
   /**
-   * Applies styles to this element and then creates an onAuthReady callback
-   * that populates {@link #stopAuthCheck} as a Firebase Unsubscribe function.
+   * Setup the QuizComponent when it is added to the DOM.
+   * 
+   * This method does a few things:
+   * 1) Apply styles to this element 
+   * 2) Create a callback function that is passed to onAuthReady that shows or hides the quiz if
+   *    the user logs in or out in another tab.
+   * 3) {@link #stopAuthCheck} is turned into an Unsubscribe function that disconnects 
+   *    (unsubscribes) the Firebase listener when called.
+   * 4) Opens the quiz if the URL contains the flag "quizOpen".
    * 
    * @public
    * @returns {void}
