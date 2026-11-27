@@ -49,14 +49,14 @@ Once the application is running:
 
 ## Limitations and Future Work
 
-## Limitations
+### Limitations
 
 - Currently there is no creator side to the application.
 - Other users profile cannot be visited (even 'creator' accounts).
 - Users can only complete a small set of the originally intended actions.
 - There is no financial incentive for creators to upload on this platform.
 
-## Future Work
+### Future Work
 
 - Add a creator signup page.
 - Add a video upload form.
