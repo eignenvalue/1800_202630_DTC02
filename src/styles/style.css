@@ -247,24 +247,10 @@ body {
   padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
 }
 
-/*
 desktop-navbar {
-  display: block;
+  position: fixed;
+  z-index: 1;
 }
-
-body.has-desktop-navbar {
-  padding-left: 220px;
-  padding-bottom: 0;
-}
-
-body.has-desktop-navbar:has(quiz-component:not([hidden]), assignment-element:not([hidden])) {
-  padding-left: 0;
-}
-
-body:has(quiz-component:not([hidden]), assignment-element:not([hidden])) desktop-navbar {
-  display: none;
-}
-*/
 
 .profile-page {
   min-height: 100vh;
