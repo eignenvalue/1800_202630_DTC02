@@ -22,7 +22,7 @@ export class QuizComponent extends HTMLElement {
   /**
    * A random unique ID for each quiz instance that 'passes through' this element.
    * 
-   * Uses to identify input names.
+   * Used to identify input names.
    * 
    * @private
    * @type {string}
