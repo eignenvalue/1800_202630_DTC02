@@ -40,12 +40,7 @@ class DesktopNavbar extends HTMLElement {
     }
 
     /**
-     * Remove the class that adds 220px padding the body.
-     * 
-     * This disconnectedCallback will be called if the element is removed,
-     * but the element would only be removed if the screen size has changed,
-     * either because of the user changing their screen-orientation or 
-     * resizing the browser window
+     * Mutate global state by removing a class from the body that adds 220px padding.
      * 
      * @public
      * @returns {void}
