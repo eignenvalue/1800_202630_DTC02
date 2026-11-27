@@ -142,7 +142,7 @@ export class Assignment extends HTMLElement {
     const url = new URL(window.location);
     if (!url.searchParams.get("assignmentOpen")) {
       this.style.display = "none";
-    };
+    }
 
     if (!this.#content) {
       this.#buildShell();
