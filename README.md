@@ -45,8 +45,6 @@ Once the application is running:
 - Bootrap Icons for providing the icons for the application.
 - MDN web docs for providing Javascript documentation.
 
----
-
 ## Limitations and Future Work
 
 ### Limitations
@@ -62,5 +60,3 @@ Once the application is running:
 - Add a video upload form.
 - Allow users to complete more basic application within the application.
 - Make quizzes mean something to the user. Currently, a user completes a quiz gets their score and moves on which is not as exciting as a badge or leveling system!
-
----
