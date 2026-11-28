@@ -477,7 +477,7 @@ class ScrollableVideoManager extends HTMLElement {
      * Load a {@link #pageSize} list of videos to add to
      * the queue.
      * 
-     * The {@link cursor} position is updated if there is at least
+     * The {@link #cursor} position is updated if there is at least
      * one video found from the query.
      * 
      * {@link #hasMore} will be updated to indicate whether there
@@ -823,7 +823,6 @@ class ScrollableVideoManager extends HTMLElement {
          */
         const place = (video, base) => {
             video.style.transition = transition;
-            console.log('placed with this transition ', transition);
             video.style.transform = `translateY(${base + offset}px)`;
         };
 
@@ -913,7 +912,6 @@ class ScrollableVideoManager extends HTMLElement {
          * some amount of pixels) upward.
          */
         let offset = event.clientY - this.#startY;
-        console.log(offset, event.clientY, this.#startY)
 
         /** Check if there is a last of next video before assigning any offset above 0. */
         if (offset > 0 && !this.#hasLast) offset = 0;
@@ -1046,7 +1044,6 @@ class ScrollableVideoManager extends HTMLElement {
         event.preventDefault();
         if (this.#animating || this.#dragging || !this.#currentVideo) return;
 
-        console.log(event.deltaY);
         if (event.deltaY > 0 && this.#hasNext) {
             this.#nextVideo.showVideo();
             this.#commit(1);
@@ -1083,18 +1080,23 @@ class ScrollableVideoManager extends HTMLElement {
     }
 
     /**
-     * Force the browser to do a layout recalculation by accessing a single DOM layout property.
+     * Force the browser to do a layout recalculation by accessing a single DOM layout property, and
+     * throwing away the result.
      * 
-     * This sets a baseline for the positions of the video in the DOM by having the browser calculate
-     * all styles and mark them as clean.
+     * This sets a baseline for the positions of the video in the DOM and forces a synchronous style
+     * and layout pass, establishing a computed baseline box for the newly visible video before its 
+     * transform transition begins.
      * 
-     * When the transition styles are applied in {@link #layout} that style will once again
-     * become marked as dirty, so the browser will apply the new styles on the next render
-     * and the animation can begin properly. 
+     * JS batches style changes, and we apply two important styles to the next/last video
+     * when we {@link #commit}. Firstly, display: block is applied so that the element is visible.
      * 
-     * Without the recalculation it is possible that the browser never sees the starting state of 
-     * `transform` if `transform` was already marked as dirty before the new transform value is set 
-     * in {@link #layout}.
+     * Prior, the display setting is `none`, which means that the element has no computed properties
+     * and the browser does not know exactly where that element is supposed to be on the screen.
+     * 
+     * Because styles are batched, and the computed properties are not computed during these steps (normally),
+     * it is vital that the computed properties are computed BEFORE the transform animation is applied
+     * so that the browser can calculate a start position for the animation, and the video can nicely
+     * slide to its new position.
      * 
      * @private
      * @returns {void}
@@ -1120,6 +1122,7 @@ class ScrollableVideoManager extends HTMLElement {
         this.#flushStyles();
 
         this.#layout(-direction * this.#height, true);
+
 
         /** Create a local version of the current {@link #requestId} that can be checked later. */
         const requestId = this.#requestId;
