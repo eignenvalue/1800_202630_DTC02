@@ -34,7 +34,7 @@ class BottomNavbar extends HTMLElement {
      */
     connectedCallback() {
         this.innerHTML = `
-            <nav class="navbar navbar-dark bg-dark fixed-bottom bottom-navbar"
+            <nav class="navbar navbar-dark bg-black py-2 fixed-bottom bottom-navbar"
                  style="padding-bottom: env(safe-area-inset-bottom, 0px); z-index: 1030;"
                  aria-label="Main navigation">
                 <div class="container-fluid d-flex justify-content-around flex-nowrap px-0"

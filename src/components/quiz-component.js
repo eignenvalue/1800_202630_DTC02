@@ -114,9 +114,8 @@ export class QuizComponent extends HTMLElement {
           ${options}
         </div>`;
     }).join("") + `
-          <div class="text-center">
-            <button class="btn btn-primary mt-5" type="submit">Submit</button>
-            <p class="score mt-3 fs-4"></p>
+          <div id="scoreButtonContainer" class="text-center py-4 d-flex flex-column gap-2">
+            <button class="btn btn-primary mb-5" type="submit">Submit</button>
           </div>` : '<p class="m-3">No quiz for this video.</p>';
 
     this.innerHTML = `
@@ -170,12 +169,19 @@ export class QuizComponent extends HTMLElement {
       if (picked.join() === correct.join()) score++;
     });
 
-    const scoreEl = this.querySelector(".score");
+    const scoreEl = this.querySelector("#scoreButtonContainer");
     if (scoreEl) {
       if (score == this.#quiz.length) {
-        scoreEl.textContent = `You got ${score} out of ${this.#quiz.length} 🎉`;
+        scoreEl.innerHTML = `<p>You got ${score} out of ${this.#quiz.length} 🎉</p>`;
       } else {
-        scoreEl.textContent = `You got ${score} out of ${this.#quiz.length} !`;
+        scoreEl.innerHTML = `<p>You got ${score} out of ${this.#quiz.length} !</p>`;
+      }
+
+      scoreEl.innerHTML += '<button type="button" class="close"><i class="bi bi-door-open"></i>Exit Quiz</button>';
+
+      const closeButton = scoreEl.querySelector(".close");
+      closeButton.onclick = () => {
+        this.hide();
       }
     }
 
