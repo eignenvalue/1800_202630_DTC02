@@ -22,7 +22,7 @@ async function displayLikedVideosDynamically(user) {
         newcard.querySelector('.card-text').textContent = video.username || 'Unknown creator';
         newcard.querySelector('.card-likes').textContent = video.like_count || 0;
         newcard.querySelector('.card-image').src = `/videos/${video.video_url}`;
-        newcard.querySelector('.read-more').href = `video-side-navbar.html?videoId=${videoId}`;
+        newcard.querySelector('.read-more').href = `/index.html?videoId=${videoId}`;
         document.getElementById('saved-likes-grid').appendChild(newcard);
     }
 

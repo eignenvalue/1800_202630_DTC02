@@ -188,6 +188,10 @@ details>summary {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
+#profileMain {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
 desktop-navbar {
   display: none;
 }

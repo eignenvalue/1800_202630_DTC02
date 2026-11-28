@@ -12,12 +12,12 @@
 </head>
 
 <body class="profile-page">
-    <main class="container py-4">
+    <main id="profileMain" class="container py-4">
         <header class="position-relative text-center mb-4">
             <div class="d-flex flex-row align-items-center justify-content-between my-2">
                 <back-button></back-button>
 
-                <button id="logout-button" class="btn text-white d-flex align-items-center gap-1" type="button"
+                <button id="logout-button" class="btn text-white d-none d-flex align-items-center gap-1" type="button"
                     style="background-color: transparent; border: gray 1px solid;">
                     <i class="bi bi-box-arrow-right me-1" aria-hidden="true"></i>
                     Logout
@@ -30,7 +30,7 @@
             </div>
         </header>
 
-        <section id="saved-likes" aria-labelledby="saved-likes-heading">
+        <section id="saved-likes" aria-labelledby="saved-likes-heading" style="padding-bottom: 5rem;">
             <div class="d-flex align-items-center gap-2 mb-3">
                 <i class="bi bi-heart-fill fs-3 text-danger" aria-hidden="true"></i>
                 <h2 id="saved-likes-heading" class="h3 mb-0">Saved Likes</h2>

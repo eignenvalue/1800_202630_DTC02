@@ -3,7 +3,7 @@
  */
 export const navigationItems = [
     { href: '/', icon: 'bi-house-fill', label: 'Home' },
-    { href: '/profile', icon: 'bi-person-circle', label: 'Profile' },
+    { href: '/profile.html', icon: 'bi-person-circle', label: 'Profile' },
 ];
 
 /**
