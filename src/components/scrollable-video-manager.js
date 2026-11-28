@@ -1098,6 +1098,8 @@ class ScrollableVideoManager extends HTMLElement {
      * so that the browser can calculate a start position for the animation, and the video can nicely
      * slide to its new position.
      * 
+     * Patrick Brosset: https://www.youtube.com/watch?v=WRiOWJZoKlw&t=632s
+     * 
      * @private
      * @returns {void}
      */

@@ -44,6 +44,7 @@ Once the application is running:
 - marked library from npm.
 - Bootrap Icons for providing the icons for the application.
 - MDN web docs for providing Javascript documentation.
+- Patrick Brosset: [Style Recalculation Secrets They Don't Want You To Know](https://www.youtube.com/watch?v=WRiOWJZoKlw&t=632s)
 
 ## Limitations and Future Work
 
