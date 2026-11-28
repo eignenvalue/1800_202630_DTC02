@@ -9,7 +9,7 @@ import { VideoContainer } from './video-container.js';
 import './video-filters.js';
 import { QuizComponent } from "./quiz-component";
 import { Assignment } from "./assignment";
-import { hideLoginModal, onAuthReadyUserCallback, showLoginModal } from './login-modal.js';
+import { onAuthReadyUserCallback } from './login-modal.js';
 
 /** 
  * The video parameter name for adding the video ID to the URL.
@@ -1293,7 +1293,7 @@ class ScrollableVideoManager extends HTMLElement {
      * Play the video currently being shown to the user if 
      * the function to do so is available.
      * 
-     * @param {Event} event unused
+     * @param {Event} _event unused event
      * @private
      * @returns {void} 
      */
