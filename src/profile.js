@@ -6,6 +6,9 @@ import { doc, getDoc } from 'firebase/firestore';
 async function displayLikedVideosDynamically(user) {
     const userSnapshot = await getDoc(doc(db, 'users', user.uid));
     const likedVideoIds = userSnapshot.data()?.liked_videos || [];
+
+    // The template already exists on the DOM. We query it and make copies 
+    // here to print more videos.
     const cardTemplate = document.getElementById('videoCardTemplate');
     const status = document.getElementById('saved-likes-status');
 

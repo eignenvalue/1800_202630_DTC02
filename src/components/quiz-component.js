@@ -106,7 +106,7 @@ export class QuizComponent extends HTMLElement {
           <input class="form-check-input" type="${type}" name="${name}" id="${name}-${i}" value="${i}" />
           <label class="form-check-label" for="${name}-${i}">${escapeHtml(option)}</label>
         </div>`,
-      ).join("");
+      ).join();
 
       return `
         <div class="quiz">

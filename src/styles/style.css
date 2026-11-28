@@ -360,7 +360,7 @@ html,
 body {
   margin: 0;
   height: 100%;
-  overflow: hidden;
+  overflow: auto;
   /* the feed handles its own scrolling */
   overscroll-behavior: none;
   /* no pull-to-refresh / rubber-banding */
